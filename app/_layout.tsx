@@ -10,12 +10,11 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import { I18nManager, useColorScheme } from "react-native";
+import { useColorScheme } from "react-native";
 import FlashMessage from "react-native-flash-message";
 import "react-native-reanimated";
 
 SplashScreen.preventAutoHideAsync();
-I18nManager.forceRTL(true);
 
 function AppNavigator() {
   const { authInitialized } = useAuth();

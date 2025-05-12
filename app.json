@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "bExpoMobile",
-    "slug": "bExpoMobile",
+    "name": "B.Expo",
+    "slug": "BExpo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
