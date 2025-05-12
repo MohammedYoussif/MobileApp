@@ -10,13 +10,11 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.exponfc.exponfc",
-      "supportsRTL": true
+      "bundleIdentifier": "com.exponfc.exponfc"
     },
     "android": {
       "edgeToEdgeEnabled": true,
-      "package": "com.exponfc.exponfc",
-      "supportsRTL": true
+      "package": "com.exponfc.exponfc"
     },
     "extra": {
       "supportsRTL": true
