@@ -1,0 +1,31 @@
+{
+    "translation": {
+        "email": "البريد الإلكتروني",
+        "password": "كلمة المرور",
+        "forgotPassword": "نسيت كلمة المرور؟",
+        "continueWith": "أو تسجيل الدخول باستخدام",
+        "noAccount": "ليس لديك حساب بعد؟",
+        "buttons": {
+            "login": "تسجيل الدخول",
+            "loggingIn": "جاري تسجيل الدخول...",
+            "signup": "إنشاء حساب",
+            "continueWithGoogle": "المتابعة باستخدام جوجل",
+            "continueWithApple": "المتابعة باستخدام آبل"
+        },
+        "placeholders": {
+            "email": "name@example.com",
+            "password": "••••••••"
+        },
+        "errors": {
+            "emailRequired": "البريد الإلكتروني مطلوب.",
+            "passwordRequired": "كلمة المرور مطلوبة.",
+            "invalidEmail": "يرجى إدخال عنوان بريد إلكتروني صالح.",
+            "userNotFound": "لم يتم العثور على مستخدم بهذا البريد الإلكتروني.",
+            "wrongPassword": "كلمة المرور غير صحيحة.",
+            "loginFailed": "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى."
+        },
+        "accessibility": {
+            "appLogo": "شعار التطبيق"
+        }
+    }
+}

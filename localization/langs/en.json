@@ -1,0 +1,31 @@
+{
+    "translation": {
+        "email": "Email",
+        "password": "Password",
+        "forgotPassword": "Forgot password?",
+        "continueWith": "Or continue with",
+        "noAccount": "Don't have an account yet?",
+        "buttons": {
+            "login": "Sign In",
+            "loggingIn": "Signing in...",
+            "signup": "Sign Up",
+            "continueWithGoogle": "Continue with Google",
+            "continueWithApple": "Continue with Apple"
+        },
+        "placeholders": {
+            "email": "name@example.com",
+            "password": "••••••••"
+        },
+        "errors": {
+            "emailRequired": "Email is required.",
+            "passwordRequired": "Password is required.",
+            "invalidEmail": "Please enter a valid email address.",
+            "userNotFound": "No user found with this email.",
+            "wrongPassword": "Incorrect password.",
+            "loginFailed": "Login failed. Please try again."
+        },
+        "accessibility": {
+            "appLogo": "App Logo"
+        }
+    }
+}
