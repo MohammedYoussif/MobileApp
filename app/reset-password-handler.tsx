@@ -115,7 +115,10 @@ export default function ResetPassword() {
             style={styles.input}
             placeholder={t("resetPassword.enterNewPassword")}
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(e) => {
+              setPassword(e);
+              setError("");
+            }}
             secureTextEntry={!showPassword}
             placeholderTextColor="#999"
           />
@@ -136,7 +139,10 @@ export default function ResetPassword() {
             style={styles.input}
             placeholder={t("resetPassword.confirmNewPassword")}
             value={confirmPassword}
-            onChangeText={setConfirmPassword}
+            onChangeText={(e) => {
+              setConfirmPassword(e);
+              setError("");
+            }}
             secureTextEntry={!showConfirmPassword}
             placeholderTextColor="#999"
           />
