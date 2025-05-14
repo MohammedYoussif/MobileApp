@@ -11,7 +11,11 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.exponfc.exponfc"
+      "bundleIdentifier": "com.exponfc.exponfc",
+      "associatedDomains": [
+        "applinks:bexpo.xyz",
+        "applinks:dashboard.bexpo.xyz"
+      ]
     },
     "android": {
       "edgeToEdgeEnabled": true,
@@ -48,7 +52,13 @@
     },
     "plugins": [
       "expo-router",
-      "expo-localization"
+      "expo-localization",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.314892553525-49lu03aeb8intjc7pq9fpjc414cgfvut"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
