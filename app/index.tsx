@@ -1,7 +1,9 @@
 import { ThemedText } from "@/components/ThemedText";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import MaskedView from "@react-native-masked-view/masked-view";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Animated,
@@ -14,11 +16,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 const INTRO_COMPLETED_KEY = "introCompleted";
 
+// Component for a single slide
 const Slide = ({
   item,
   index,
@@ -84,6 +86,7 @@ const Slide = ({
   );
 };
 
+// Pagination component
 const Pagination = ({
   slides,
   scrollX,
@@ -142,8 +145,8 @@ const Pagination = ({
   );
 };
 
-export default function IntroSlider() {
-  const { replace } = useRouter();
+// IntroSlider component
+const IntroSlider = ({ onComplete }: { onComplete: () => void }) => {
   const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
@@ -182,20 +185,13 @@ export default function IntroSlider() {
   };
 
   const handleSkipPress = async () => {
-    try {
-      await AsyncStorage.setItem(INTRO_COMPLETED_KEY, "true");
-
-      replace("/(auth)/(signin)");
-    } catch (error) {
-      console.error("Error saving intro completion status:", error);
-    }
+    handleComplete();
   };
 
   const handleComplete = async () => {
     try {
       await AsyncStorage.setItem(INTRO_COMPLETED_KEY, "true");
-
-      replace("/(auth)/(signin)");
+      onComplete();
     } catch (error) {
       console.error("Error saving intro completion status:", error);
     }
@@ -231,7 +227,7 @@ export default function IntroSlider() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar translucent backgroundColor="transparent" />
       <Animated.FlatList
         ref={flatListRef}
@@ -273,7 +269,117 @@ export default function IntroSlider() {
           </TouchableOpacity>
         )}
       </View>
-    </SafeAreaView>
+    </View>
+  );
+};
+
+// LoadingScreen component
+const LoadingScreen = () => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 1.05,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  return (
+    <LinearGradient
+      colors={["#B38051", "#B3805190", "#B3805180"]}
+      style={styles.loadingContainer}
+    >
+      <Animated.View
+        style={[
+          {
+            width: "100%",
+            height: "100%",
+            justifyContent: "center",
+            alignItems: "center",
+            transform: [{ scale: scaleAnim }],
+          },
+        ]}
+      >
+        <Image
+          alt="Logo"
+          source={require("@/assets/images/icon.png")}
+          style={{ width: "50%", height: 120, resizeMode: "contain" }}
+        />
+        <MaskedView
+          maskElement={
+            <ThemedText type="bold" style={{ fontSize: 30 }}>
+              BExpo
+            </ThemedText>
+          }
+        >
+          <LinearGradient
+            colors={["#B38051", "#B3805170", "#fff"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{ width: 90, height: 100 }}
+          />
+        </MaskedView>
+      </Animated.View>
+    </LinearGradient>
+  );
+};
+
+// Main component that handles the flow
+export default function IntroModule() {
+  const { replace } = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Check if intro has been completed when component mounts
+    checkIntroStatus();
+  }, []);
+
+  const checkIntroStatus = async () => {
+    try {
+      const value = await AsyncStorage.getItem(INTRO_COMPLETED_KEY);
+      if (value === "true") {
+        setTimeout(() => {
+          navigateToAuth();
+        }, 7000);
+      } else {
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 7000);
+      }
+    } catch (error) {
+      console.error("Error checking intro status:", error);
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 7000);
+    }
+  };
+
+  const handleIntroComplete = () => {
+    navigateToAuth();
+  };
+
+  const navigateToAuth = () => {
+    replace("/(auth)/(signin)");
+  };
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  return (
+    <View style={styles.container}>
+      <IntroSlider onComplete={handleIntroComplete} />
+    </View>
   );
 }
 
@@ -281,6 +387,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   slide: {
     width,
