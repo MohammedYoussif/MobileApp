@@ -13,8 +13,9 @@ export default StyleSheet.create({
     alignItems: "center",
   },
   logo: {
+    width: 100,
     height: 100,
-    resizeMode: "center",
+    marginBottom: 12,
   },
   formContainer: {
     flex: 1,

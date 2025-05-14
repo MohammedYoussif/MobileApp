@@ -105,7 +105,12 @@ export default function Signin() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.logoContainer}>
-          <Image alt="logo" source={LOGO} style={styles.logo} />
+          <Image
+            alt="logo"
+            source={LOGO}
+            style={styles.logo}
+            resizeMode="contain"
+          />
         </View>
 
         <View style={styles.formContainer}>

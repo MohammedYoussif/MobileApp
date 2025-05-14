@@ -12,6 +12,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.exponfc.exponfc",
+      "buildNumber": "17",
       "associatedDomains": [
         "applinks:bexpo.xyz",
         "applinks:dashboard.bexpo.xyz"
