@@ -1,31 +1,31 @@
-import { StyleSheet, Text, type TextProps } from 'react-native';
+import { StyleSheet, Text, type TextProps } from "react-native";
 
-import { useThemeColor } from '@/hooks/useThemeColor';
+import { useThemeColor } from "@/hooks/useThemeColor";
 
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
   darkColor?: string;
-  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
+  type?: "regular" | "bold" | "semiBold" | "medium" | "light";
 };
 
 export function ThemedText({
   style,
   lightColor,
   darkColor,
-  type = 'default',
+  type = "regular",
   ...rest
 }: ThemedTextProps) {
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+  const color = useThemeColor({ light: lightColor, dark: darkColor }, "text");
 
   return (
     <Text
       style={[
         { color },
-        type === 'default' ? styles.default : undefined,
-        type === 'title' ? styles.title : undefined,
-        type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
-        type === 'subtitle' ? styles.subtitle : undefined,
-        type === 'link' ? styles.link : undefined,
+        type === "regular" ? styles.regular : undefined,
+        type === "bold" ? styles.bold : undefined,
+        type === "semiBold" ? styles.semiBold : undefined,
+        type === "medium" ? styles.medium : undefined,
+        type === "light" ? styles.light : undefined,
         style,
       ]}
       {...rest}
@@ -34,27 +34,24 @@ export function ThemedText({
 }
 
 const styles = StyleSheet.create({
-  default: {
-    fontSize: 16,
-    lineHeight: 24,
+  regular: {
+    paddingBottom: 5,
+    fontFamily: "Cairo-Regular",
   },
-  defaultSemiBold: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: '600',
+  semiBold: {
+    paddingBottom: 5,
+    fontFamily: "Cairo-SemiBold",
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    lineHeight: 32,
+  bold: {
+    paddingBottom: 5,
+    fontFamily: "Cairo-Bold",
   },
-  subtitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  medium: {
+    paddingBottom: 5,
+    fontFamily: "Cairo-Medium",
   },
-  link: {
-    lineHeight: 30,
-    fontSize: 16,
-    color: '#0a7ea4',
+  light: {
+    paddingBottom: 5,
+    fontFamily: "Cairo-Light",
   },
 });

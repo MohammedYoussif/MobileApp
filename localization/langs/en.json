@@ -1,31 +1,50 @@
 {
     "translation": {
+        "loginTitle": "Login in to your account",
+        "signupTitle": "Create your account",
+        "agreement": "By Signing Up you agree to our <terms>Terms & Conditions</terms> and <privacy>Privacy Policy</privacy>",
         "email": "Email",
         "password": "Password",
+        "fullname": "Full name",
         "forgotPassword": "Forgot password?",
         "continueWith": "Or continue with",
         "noAccount": "Don't have an account yet?",
+        "haveAccount": "Have an account?",
         "buttons": {
             "login": "Sign In",
             "loggingIn": "Signing in...",
             "signup": "Sign Up",
-            "continueWithGoogle": "Continue with Google",
-            "continueWithApple": "Continue with Apple"
-        },
-        "placeholders": {
-            "email": "name@example.com",
-            "password": "••••••••"
+            "suginingUp": "Signing up...",
+            "next": "Next",
+            "skip": "Skip",
+            "done": "Done"
         },
         "errors": {
             "emailRequired": "Email is required.",
             "passwordRequired": "Password is required.",
+            "fullnameRequired": "Full name is required.",
+            "fullnameTooShort": "Full name must be at least 2 characters.",
             "invalidEmail": "Please enter a valid email address.",
             "userNotFound": "No user found with this email.",
             "wrongPassword": "Incorrect password.",
-            "loginFailed": "Login failed. Please try again."
+            "loginFailed": "Login failed. Please try again.",
+            "signupFailed": "Sign up failed. Please try again.",
+            "emailInUse": "This email is already in use.",
+            "weakPassword": "Password is too weak."
         },
-        "accessibility": {
-            "appLogo": "App Logo"
+        "intro": {
+            "slide-1": {
+                "title": "Discover Companies & People Effortlessly",
+                "subtitle": "Easily search for businesses and professionals that matter to you. Find the right connections and grow your network."
+            },
+            "slide-2": {
+                "title": "Connect with Friends in One Tap",
+                "subtitle": "Adding friends has never been easier! With just one tap, build meaningful connections quickly and efficiently."
+            },
+            "slide-3": {
+                "title": "Explore Nearby Offers & Deals",
+                "subtitle": "Stay updated with the latest deals and exclusive offers around you. Make the most of what's nearby!"
+            }
         }
     }
 }
