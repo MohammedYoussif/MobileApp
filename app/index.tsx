@@ -1,0 +1,359 @@
+import { ThemedText } from "@/components/ThemedText";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+import React, { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  Animated,
+  Dimensions,
+  FlatList,
+  Image,
+  ImageSourcePropType,
+  StatusBar,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+const { width } = Dimensions.get("window");
+const INTRO_COMPLETED_KEY = "introCompleted";
+
+const Slide = ({
+  item,
+  index,
+  scrollX,
+}: {
+  item: {
+    mainImage: ImageSourcePropType;
+    title: string;
+    subtitle: string;
+    id: string;
+  };
+  index: number;
+  scrollX: Animated.Value;
+}) => {
+  // Calculate the input range for animations
+  const inputRange = [(index - 1) * width, index * width, (index + 1) * width];
+
+  // Create animated values for different properties
+  const imageScale = scrollX.interpolate({
+    inputRange,
+    outputRange: [0.8, 1, 0.8],
+    extrapolate: "clamp",
+  });
+
+  const textOpacity = scrollX.interpolate({
+    inputRange,
+    outputRange: [0, 1, 0],
+    extrapolate: "clamp",
+  });
+
+  const textTranslateY = scrollX.interpolate({
+    inputRange,
+    outputRange: [40, 0, 40],
+    extrapolate: "clamp",
+  });
+
+  return (
+    <View style={styles.slide}>
+      <Animated.View style={{ transform: [{ scale: imageScale }] }}>
+        <Image
+          source={item.mainImage}
+          style={styles.mainImage}
+          resizeMode="contain"
+        />
+      </Animated.View>
+      <Animated.View
+        style={[
+          styles.contentContainer,
+          {
+            opacity: textOpacity,
+            transform: [{ translateY: textTranslateY }],
+          },
+        ]}
+      >
+        <ThemedText type="bold" style={styles.title}>
+          {item.title}
+        </ThemedText>
+        <ThemedText type="medium" style={styles.subtitle}>
+          {item.subtitle}
+        </ThemedText>
+      </Animated.View>
+    </View>
+  );
+};
+
+const Pagination = ({
+  slides,
+  scrollX,
+}: {
+  slides: {
+    mainImage: ImageSourcePropType;
+    title: string;
+    subtitle: string;
+    id: string;
+  }[];
+  scrollX: Animated.Value;
+}) => {
+  return (
+    <View style={styles.paginationContainer}>
+      {slides.map((_, index) => {
+        const inputRange = [
+          (index - 1) * width,
+          index * width,
+          (index + 1) * width,
+        ];
+
+        const dotWidth = scrollX.interpolate({
+          inputRange,
+          outputRange: [10, 20, 10],
+          extrapolate: "clamp",
+        });
+
+        const opacity = scrollX.interpolate({
+          inputRange,
+          outputRange: [0.3, 1, 0.3],
+          extrapolate: "clamp",
+        });
+
+        return (
+          <Animated.View
+            key={index}
+            style={[
+              styles.paginationDot,
+              { width: dotWidth, opacity },
+              scrollX.interpolate({
+                inputRange,
+                outputRange: [
+                  styles.paginationDot.backgroundColor,
+                  styles.paginationDotActive.backgroundColor,
+                  styles.paginationDot.backgroundColor,
+                ],
+                extrapolate: "clamp",
+              })
+                ? styles.paginationDotActive
+                : null,
+            ]}
+          />
+        );
+      })}
+    </View>
+  );
+};
+
+export default function IntroSlider() {
+  const { replace } = useRouter();
+  const { t } = useTranslation();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
+  const scrollX = useRef(new Animated.Value(0)).current;
+
+  const slides = [
+    {
+      id: "1",
+      mainImage: require("@/assets/images/central-image-1.png"),
+      title: t("intro.slide-1.title"),
+      subtitle: t("intro.slide-1.subtitle"),
+    },
+    {
+      id: "2",
+      mainImage: require("@/assets/images/central-image-2.png"),
+      title: t("intro.slide-2.title"),
+      subtitle: t("intro.slide-2.subtitle"),
+    },
+    {
+      id: "3",
+      mainImage: require("@/assets/images/central-image-3.png"),
+      title: t("intro.slide-3.title"),
+      subtitle: t("intro.slide-3.subtitle"),
+    },
+  ];
+
+  const handleNextPress = () => {
+    if (currentIndex < slides.length - 1) {
+      flatListRef.current?.scrollToIndex({
+        index: currentIndex + 1,
+        animated: true,
+      });
+    } else {
+      handleComplete();
+    }
+  };
+
+  const handleSkipPress = async () => {
+    try {
+      await AsyncStorage.setItem(INTRO_COMPLETED_KEY, "true");
+
+      replace("/(auth)/(signin)");
+    } catch (error) {
+      console.error("Error saving intro completion status:", error);
+    }
+  };
+
+  const handleComplete = async () => {
+    try {
+      await AsyncStorage.setItem(INTRO_COMPLETED_KEY, "true");
+
+      replace("/(auth)/(signin)");
+    } catch (error) {
+      console.error("Error saving intro completion status:", error);
+    }
+  };
+
+  const handleViewableItemsChanged = ({ viewableItems }: any) => {
+    if (viewableItems[0]) {
+      setCurrentIndex(slides.indexOf(viewableItems[0].item));
+    }
+  };
+
+  const viewabilityConfig = {
+    itemVisiblePercentThreshold: 50,
+  };
+
+  // Animated button scale for better feedback
+  const buttonScale = useRef(new Animated.Value(1)).current;
+
+  const buttonPressIn = () => {
+    Animated.spring(buttonScale, {
+      toValue: 0.95,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const buttonPressOut = () => {
+    Animated.spring(buttonScale, {
+      toValue: 1,
+      friction: 5,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar translucent backgroundColor="transparent" />
+      <Animated.FlatList
+        ref={flatListRef}
+        data={slides}
+        renderItem={({ item, index }) => (
+          <Slide item={item} index={index} scrollX={scrollX} />
+        )}
+        keyExtractor={(item) => item.id}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onViewableItemsChanged={handleViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+          { useNativeDriver: false }
+        )}
+        scrollEventThrottle={16}
+      />
+      <View style={styles.footer}>
+        <Pagination slides={slides} scrollX={scrollX} />
+        <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
+          <TouchableOpacity
+            style={styles.nextButton}
+            onPress={handleNextPress}
+            onPressIn={buttonPressIn}
+            onPressOut={buttonPressOut}
+          >
+            <ThemedText type="bold" style={styles.nextButtonText}>
+              {currentIndex !== 2 ? t("buttons.next") : t("buttons.done")}
+            </ThemedText>
+          </TouchableOpacity>
+        </Animated.View>
+        {currentIndex !== 2 && (
+          <TouchableOpacity style={styles.skipButton} onPress={handleSkipPress}>
+            <ThemedText style={styles.skipButtonText}>
+              {t("buttons.skip")}
+            </ThemedText>
+          </TouchableOpacity>
+        )}
+      </View>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  slide: {
+    width,
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 30,
+  },
+  mainImage: {
+    width: width * 0.85,
+    height: width * 0.85,
+    maxWidth: 450,
+    maxHeight: 450,
+    marginTop: 30,
+  },
+  contentContainer: {
+    alignItems: "center",
+    paddingHorizontal: 30,
+    marginTop: 20,
+  },
+  title: {
+    fontSize: 16,
+    color: "#333",
+    textAlign: "center",
+    marginBottom: 15,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: "#666",
+    textAlign: "center",
+    lineHeight: 22,
+  },
+  footer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    paddingBottom: 20,
+  },
+  paginationContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  paginationDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#ccc",
+    marginHorizontal: 4,
+  },
+  paginationDotActive: {
+    backgroundColor: "#b48052",
+  },
+  nextButton: {
+    width: width - 60,
+    height: 50,
+    backgroundColor: "#b48052",
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 15,
+  },
+  nextButtonText: {
+    color: "#fff",
+    fontSize: 16,
+  },
+  skipButton: {
+    paddingVertical: 10,
+  },
+  skipButtonText: {
+    color: "#999",
+    fontSize: 14,
+  },
+});
