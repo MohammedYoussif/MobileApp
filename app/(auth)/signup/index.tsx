@@ -1,257 +1,266 @@
 import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
 import { useAuth } from "@/context/auth.context";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { isValidEmail } from "@/utils/helpers";
+import Icon from "@expo/vector-icons/FontAwesome";
+import { appleAuth } from "@invertase/react-native-apple-authentication";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import {
   Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StatusBar,
   TextInput,
   TouchableOpacity,
-  useColorScheme,
   View,
 } from "react-native";
-import { showMessage } from "react-native-flash-message";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import styles from "./styles";
 
-export default function Signup() {
+export default function SignUp() {
+  const { t } = useTranslation();
   const navigation = useRouter();
-  const { register, login } = useAuth();
+  const { googleSignIn, appleSignIn, register } = useAuth();
   const { top } = useSafeAreaInsets();
-  const isDark = (useColorScheme() ?? "light") === "dark";
   const background = useThemeColor({}, "background");
-
-  // Form states
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
-
-  // Error states
-  const [firstNameError, setFirstNameError] = useState("");
-  const [lastNameError, setLastNameError] = useState("");
+  const [fullnameError, setFullnameError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const [termsError, setTermsError] = useState("");
-  const [submitError, setSubmitError] = useState("");
+  const [loginError, setLoginError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const LOGO = require("@/assets/images/icon.png");
 
-  const LOGO = isDark
-    ? require("@/assets/images/logo-dark.png")
-    : require("@/assets/images/logo.png");
-
-  // Validation handlers
-  const handleFirstNameChange = (text: string) => {
-    setFirstName(text);
-    setFirstNameError(text.trim() ? "" : "Prénom requis.");
-  };
-
-  const handleLastNameChange = (text: string) => {
-    setLastName(text);
-    setLastNameError(text.trim() ? "" : "Nom de famille requis.");
+  const handleFullnameChange = (text: string) => {
+    setFullname(text);
+    if (!text) {
+      setFullnameError(t("errors.fullnameRequired"));
+    } else if (text.trim().length < 2) {
+      setFullnameError(t("errors.fullnameTooShort"));
+    } else {
+      setFullnameError("");
+    }
   };
 
   const handleEmailChange = (text: string) => {
     setEmail(text);
-    if (!text) setEmailError("Email requis.");
-    else if (!isValidEmail(text))
-      setEmailError("Veuillez entrer une adresse email valide.");
-    else setEmailError("");
+    if (!text) {
+      setEmailError(t("errors.emailRequired"));
+    } else if (!isValidEmail(text)) {
+      setEmailError(t("errors.invalidEmail"));
+    } else {
+      setEmailError("");
+    }
   };
 
   const handlePasswordChange = (text: string) => {
     setPassword(text);
-    if (!text) setPasswordError("Mot de passe requis.");
-    else if (text.length < 6)
-      setPasswordError("Le mot de passe doit contenir au moins 6 caractères.");
-    else setPasswordError("");
+    if (!text) {
+      setPasswordError(t("errors.passwordRequired"));
+    } else {
+      setPasswordError("");
+    }
   };
 
-  const handleTermsToggle = () => {
-    setAcceptedTerms((prev) => !prev);
-    setTermsError("");
-  };
+  const handleSignUp = async () => {
+    setLoginError("");
+    if (!fullname) {
+      setFullnameError(t("errors.fullnameRequired"));
+      return;
+    }
+    if (fullname.trim().length < 2) {
+      setFullnameError(t("errors.fullnameTooShort"));
+      return;
+    }
+    if (!email) {
+      setEmailError(t("errors.emailRequired"));
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setEmailError(t("errors.invalidEmail"));
+      return;
+    }
+    if (!password) {
+      setPasswordError(t("errors.passwordRequired"));
+      return;
+    }
+    if (fullnameError || emailError || passwordError) return;
 
-  const validateAll = () => {
-    handleFirstNameChange(firstName);
-    handleLastNameChange(lastName);
-    handleEmailChange(email);
-    handlePasswordChange(password);
-    if (!acceptedTerms)
-      setTermsError("Vous devez accepter les termes et conditions.");
-    else setTermsError("");
-  };
-
-  const canRegister =
-    firstName.trim() &&
-    lastName.trim() &&
-    email &&
-    isValidEmail(email) &&
-    password &&
-    password.length >= 6 &&
-    acceptedTerms &&
-    !firstNameError &&
-    !lastNameError &&
-    !emailError &&
-    !passwordError &&
-    !termsError &&
-    !loading;
-
-  const handleRegister = async () => {
-    setSubmitError("");
-    validateAll();
-    if (!canRegister) return;
     setLoading(true);
     try {
-      await register(email, password, `${firstName.trim()} ${lastName.trim()}`);
-      showMessage({
-        message: "Succès",
-        description: "Votre compte a été créé !",
-        statusBarHeight: StatusBar.currentHeight,
-        type: "success",
-      });
-      await login(email, password);
+      await register(email, password, fullname);
     } catch (error: any) {
       if (error.code === "auth/email-already-in-use") {
-        setSubmitError("Cet email est déjà utilisé.");
+        setLoginError(t("errors.emailInUse"));
       } else if (error.code === "auth/invalid-email") {
-        setSubmitError("Adresse email invalide.");
+        setLoginError(t("errors.invalidEmail"));
+      } else if (error.code === "auth/weak-password") {
+        setLoginError(t("errors.weakPassword"));
       } else {
-        setSubmitError("Erreur lors de l'inscription. Veuillez réessayer.");
+        setLoginError(t("errors.signupFailed"));
       }
     }
     setLoading(false);
   };
 
+  const canSignUp =
+    !!fullname &&
+    !!email &&
+    !!password &&
+    !fullnameError &&
+    !emailError &&
+    !passwordError &&
+    !loading;
+
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: background, paddingTop: top }}
+      style={[
+        styles.container,
+        { backgroundColor: background, paddingTop: top },
+      ]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          justifyContent: "center",
-          padding: 24,
-        }}
+        contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <ThemedView style={{ alignItems: "center" }}>
-          <Image
-            source={LOGO}
-            style={{ width: 120, height: 120 }}
-            resizeMode="contain"
-            accessibilityLabel="App Logo"
-          />
-        </ThemedView>
+        <View style={styles.logoContainer}>
+          <Image alt="logo" source={LOGO} style={styles.logo} />
+        </View>
 
-        <ThemedView style={{ flex: 1 }}>
-          <ThemedText style={styles.label}>Prénom</ThemedText>
-          <TextInput
-            style={[styles.input, { color: isDark ? "#fff" : "#000" }]}
-            placeholder="Prénom"
-            value={firstName}
-            onChangeText={handleFirstNameChange}
-            autoCapitalize="words"
-            placeholderTextColor="#aaa"
-            editable={!loading}
-          />
-          {firstNameError ? (
-            <ThemedText style={styles.errorText}>{firstNameError}</ThemedText>
-          ) : null}
+        <View style={styles.formContainer}>
+          <ThemedText type="bold" style={styles.title}>
+            {t("signupTitle")}
+          </ThemedText>
 
-          <ThemedText style={styles.label}>Nom de famille</ThemedText>
-          <TextInput
-            style={[styles.input, { color: isDark ? "#fff" : "#000" }]}
-            placeholder="Nom de famille"
-            value={lastName}
-            onChangeText={handleLastNameChange}
-            autoCapitalize="words"
-            placeholderTextColor="#aaa"
-            editable={!loading}
-          />
-          {lastNameError ? (
-            <ThemedText style={styles.errorText}>{lastNameError}</ThemedText>
-          ) : null}
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder={t("fullname") || "Full Name"}
+              value={fullname}
+              onChangeText={handleFullnameChange}
+              autoCapitalize="words"
+              placeholderTextColor="#aaa"
+              editable={!loading}
+            />
+            {fullnameError ? (
+              <ThemedText style={styles.errorText}>{fullnameError}</ThemedText>
+            ) : null}
+          </View>
 
-          <ThemedText style={styles.label}>Email</ThemedText>
-          <TextInput
-            style={[styles.input, { color: isDark ? "#fff" : "#000" }]}
-            placeholder="name@example.com"
-            value={email}
-            onChangeText={handleEmailChange}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            placeholderTextColor="#aaa"
-            editable={!loading}
-          />
-          {emailError ? (
-            <ThemedText style={styles.errorText}>{emailError}</ThemedText>
-          ) : null}
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder={t("email") || "Email"}
+              value={email}
+              onChangeText={handleEmailChange}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              placeholderTextColor="#aaa"
+              editable={!loading}
+            />
+            {emailError ? (
+              <ThemedText style={styles.errorText}>{emailError}</ThemedText>
+            ) : null}
+          </View>
 
-          <ThemedText style={styles.label}>Mot de passe</ThemedText>
-          <TextInput
-            style={[styles.input, { color: isDark ? "#fff" : "#000" }]}
-            placeholder="••••••••"
-            value={password}
-            onChangeText={handlePasswordChange}
-            secureTextEntry
-            placeholderTextColor="#aaa"
-            editable={!loading}
-          />
-          {passwordError ? (
-            <ThemedText style={styles.errorText}>{passwordError}</ThemedText>
-          ) : null}
-
-          {/* Terms and Conditions Checkbox */}
-          <TouchableOpacity
-            style={styles.checkboxRow}
-            onPress={handleTermsToggle}
-            disabled={loading}
-            activeOpacity={0.7}
-          >
-            <View
-              style={[styles.checkbox, acceptedTerms && styles.checkboxChecked]}
-            >
-              {acceptedTerms ? <View style={styles.checkboxInner} /> : null}
+          <View style={styles.inputContainer}>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder={t("password") || "Password"}
+                value={password}
+                onChangeText={handlePasswordChange}
+                secureTextEntry={!showPassword}
+                placeholderTextColor="#aaa"
+                editable={!loading}
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Icon
+                  name={!showPassword ? "eye-slash" : "eye"}
+                  size={20}
+                  color="#aaa"
+                />
+              </TouchableOpacity>
             </View>
-            <ThemedText style={styles.termsText}>
-              Vous devez accepter les termes et conditions
-            </ThemedText>
-          </TouchableOpacity>
-          {termsError ? (
-            <ThemedText style={styles.errorText}>{termsError}</ThemedText>
-          ) : null}
+            {passwordError ? (
+              <ThemedText style={styles.errorText}>{passwordError}</ThemedText>
+            ) : null}
+          </View>
 
           <TouchableOpacity
-            style={[styles.loginButton, { opacity: canRegister ? 1 : 0.5 }]}
-            onPress={handleRegister}
-            disabled={!canRegister}
+            style={[styles.signInButton, { opacity: canSignUp ? 1 : 0.5 }]}
+            onPress={handleSignUp}
+            disabled={!canSignUp}
           >
-            <ThemedText style={styles.loginButtonText}>
-              {loading ? "Création..." : "Créer un compte"}
+            <ThemedText type="bold" style={styles.signInButtonText}>
+              {loading
+                ? t("buttons.suginingUp")
+                : t("buttons.signup") || "Sign Up"}
             </ThemedText>
           </TouchableOpacity>
-          {submitError ? (
-            <ThemedText style={styles.errorText}>{submitError}</ThemedText>
+
+          {loginError ? (
+            <ThemedText style={styles.errorText}>{loginError}</ThemedText>
           ) : null}
 
-          <ThemedView style={styles.signupRow}>
-            <ThemedText style={styles.signupText}>
-              Vous avez déjà un compte ?
+          <View style={styles.dividerContainer}>
+            <View style={styles.divider} />
+            <ThemedText style={styles.dividerText}>
+              {t("continueWith") || "OR"}
             </ThemedText>
-            <TouchableOpacity onPress={navigation.back} disabled={loading}>
-              <ThemedText style={styles.signupLink}> Se connecter</ThemedText>
+            <View style={styles.divider} />
+          </View>
+
+          <View style={styles.socialContainer}>
+            <TouchableOpacity
+              style={styles.socialButton}
+              onPress={googleSignIn}
+              disabled={loading}
+            >
+              <Icon name="google" size={24} />
             </TouchableOpacity>
-          </ThemedView>
-        </ThemedView>
+
+            {appleAuth.isSupported && (
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={appleSignIn}
+                disabled={loading}
+              >
+                <Icon name="apple" size={24} color="#000" />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <ThemedText style={styles.termsText}>
+            <Trans
+              i18nKey="agreement"
+              components={{
+                terms: <ThemedText type="bold" />,
+                privacy: <ThemedText type="bold" />,
+              }}
+            />
+          </ThemedText>
+
+          <View style={styles.signupContainer}>
+            <ThemedText style={styles.signupText}>
+              {t("haveAccount")}{" "}
+            </ThemedText>
+            <TouchableOpacity onPress={navigation.back}>
+              <ThemedText type="bold" style={styles.signupLink}>
+                {t("buttons.login") || "Sign In"}
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );

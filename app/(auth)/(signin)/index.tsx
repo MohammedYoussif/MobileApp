@@ -1,6 +1,4 @@
-import LanguageSelect from "@/components/LanguageSwitcher";
 import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
 import { useAuth } from "@/context/auth.context";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { isValidEmail } from "@/utils/helpers";
@@ -8,7 +6,7 @@ import Icon from "@expo/vector-icons/FontAwesome";
 import { appleAuth } from "@invertase/react-native-apple-authentication";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import {
   Image,
   KeyboardAvoidingView,
@@ -16,6 +14,7 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import styles from "./styles";
@@ -32,8 +31,9 @@ export default function Signin() {
   const [passwordError, setPasswordError] = useState("");
   const [loginError, setLoginError] = useState("");
   const [loading, setLoading] = useState(false);
-  const LOGO = require("@/assets/images/logo.png");
-  // Validate email on change
+  const [showPassword, setShowPassword] = useState(false);
+  const LOGO = require("@/assets/images/icon.png");
+
   const handleEmailChange = (text: string) => {
     setEmail(text);
     if (!text) {
@@ -74,11 +74,8 @@ export default function Signin() {
 
     setLoading(true);
     try {
-      // Make sure your login function accepts email and password
       await login(email, password);
-      // On success, you can navigate or do something else
     } catch (error: any) {
-      // Adjust error handling as per your backend
       if (error.code === "auth/user-not-found") {
         setLoginError(t("errors.userNotFound"));
       } else if (error.code === "auth/wrong-password") {
@@ -97,128 +94,140 @@ export default function Signin() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: background, paddingTop: top }}
+      style={[
+        styles.container,
+        { backgroundColor: background, paddingTop: top },
+      ]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          justifyContent: "center",
-          padding: 24,
-        }}
+        contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <ThemedView style={{ alignItems: "center" }}>
-          <Image
-            source={LOGO}
-            style={{ width: 120, height: 120 }}
-            resizeMode="contain"
-            accessibilityLabel={t("accessibility.appLogo")}
-          />
-        </ThemedView>
+        <View style={styles.logoContainer}>
+          <Image alt="logo" source={LOGO} style={styles.logo} />
+        </View>
 
-        <ThemedView style={{ flex: 1 }}>
-          <ThemedText style={styles.label}>{t("email")}</ThemedText>
-          <TextInput
-            style={styles.input}
-            placeholder={t("placeholders.email")}
-            value={email}
-            onChangeText={handleEmailChange}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            placeholderTextColor="#aaa"
-            editable={!loading}
-          />
-          {emailError ? (
-            <ThemedText style={styles.errorText}>{emailError}</ThemedText>
-          ) : null}
+        <View style={styles.formContainer}>
+          <ThemedText type="bold" style={styles.title}>
+            {t("loginTitle")}
+          </ThemedText>
 
-          <ThemedView style={styles.passwordRow}>
-            <ThemedText style={styles.label}>{t("password")}</ThemedText>
-            <TouchableOpacity
-              onPress={() => navigation.push("/(auth)/ForgotPassword")}
-            >
-              <ThemedText style={styles.forgot}>
-                {t("forgotPassword")}
-              </ThemedText>
-            </TouchableOpacity>
-          </ThemedView>
-          <TextInput
-            style={styles.input}
-            placeholder={t("placeholders.password")}
-            value={password}
-            onChangeText={handlePasswordChange}
-            secureTextEntry
-            placeholderTextColor="#aaa"
-            editable={!loading}
-          />
-          {passwordError ? (
-            <ThemedText style={styles.errorText}>{passwordError}</ThemedText>
-          ) : null}
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder={t("email") || "Email"}
+              value={email}
+              onChangeText={handleEmailChange}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              placeholderTextColor="#aaa"
+              editable={!loading}
+            />
+            {emailError ? (
+              <ThemedText style={styles.errorText}>{emailError}</ThemedText>
+            ) : null}
+          </View>
+
+          <View style={styles.inputContainer}>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder={t("password") || "Password"}
+                value={password}
+                onChangeText={handlePasswordChange}
+                secureTextEntry={!showPassword}
+                placeholderTextColor="#aaa"
+                editable={!loading}
+              />
+              <TouchableOpacity
+                style={styles.eyeIcon}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Icon
+                  name={!showPassword ? "eye-slash" : "eye"}
+                  size={20}
+                  color="#aaa"
+                />
+              </TouchableOpacity>
+            </View>
+            {passwordError ? (
+              <ThemedText style={styles.errorText}>{passwordError}</ThemedText>
+            ) : null}
+          </View>
 
           <TouchableOpacity
-            style={[styles.loginButton, { opacity: canLogin ? 1 : 0.5 }]}
+            style={styles.forgotContainer}
+            onPress={() => navigation.push("/(auth)/ForgotPassword")}
+          >
+            <ThemedText style={styles.forgotText}>
+              {t("forgotPassword") || "Forgot Password"} ?
+            </ThemedText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.signInButton, { opacity: canLogin ? 1 : 0.5 }]}
             onPress={handleLogin}
             disabled={!canLogin}
           >
-            <ThemedText style={styles.loginButtonText}>
-              {loading ? t("buttons.loggingIn") : t("buttons.login")}
+            <ThemedText type="bold" style={styles.signInButtonText}>
+              {loading
+                ? t("buttons.loggingIn")
+                : t("buttons.login") || "Sign In"}
             </ThemedText>
           </TouchableOpacity>
+
           {loginError ? (
             <ThemedText style={styles.errorText}>{loginError}</ThemedText>
           ) : null}
 
-          <ThemedView style={styles.dividerRow}>
-            <ThemedView style={styles.divider} />
-            <ThemedText style={styles.orText}>{t("continueWith")}</ThemedText>
-            <ThemedView style={styles.divider} />
-          </ThemedView>
-
-          <TouchableOpacity
-            style={styles.socialButton}
-            onPress={() => googleSignIn()}
-            disabled={loading}
-          >
-            <Icon
-              name="google"
-              size={20}
-              color="#000"
-              style={styles.socialIcon}
-            />
-            <ThemedText style={styles.socialText}>
-              {t("buttons.continueWithGoogle")}
+          <View style={styles.dividerContainer}>
+            <View style={styles.divider} />
+            <ThemedText style={styles.dividerText}>
+              {t("continueWith") || "OR"}
             </ThemedText>
-          </TouchableOpacity>
+            <View style={styles.divider} />
+          </View>
 
-          {appleAuth.isSupported && (
+          <View style={styles.socialContainer}>
             <TouchableOpacity
               style={styles.socialButton}
-              onPress={() => appleSignIn()}
+              onPress={googleSignIn}
               disabled={loading}
             >
-              <Icon
-                name="apple"
-                size={20}
-                color="#000"
-                style={styles.socialIcon}
-              />
-              <ThemedText style={styles.socialText}>
-                {t("buttons.continueWithApple")}
-              </ThemedText>
+              <Icon name="google" size={24} />
             </TouchableOpacity>
-          )}
 
-          <ThemedView style={styles.signupRow}>
+            {appleAuth.isSupported && (
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={appleSignIn}
+                disabled={loading}
+              >
+                <Icon name="apple" size={24} color="#000" />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <ThemedText style={styles.termsText}>
+            <Trans
+              i18nKey="agreement"
+              components={{
+                terms: <ThemedText type="bold" />,
+                privacy: <ThemedText type="bold" />,
+              }}
+            />
+          </ThemedText>
+
+          <View style={styles.signupContainer}>
             <ThemedText style={styles.signupText}>{t("noAccount")} </ThemedText>
             <TouchableOpacity onPress={() => navigation.push("/(auth)/signup")}>
-              <ThemedText style={styles.signupLink}>
-                {t("buttons.signup")}
+              <ThemedText type="bold" style={styles.signupLink}>
+                {t("buttons.signup") || "Sign Up"}
               </ThemedText>
             </TouchableOpacity>
-          </ThemedView>
-        </ThemedView>
-        <LanguageSelect />
+          </View>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );

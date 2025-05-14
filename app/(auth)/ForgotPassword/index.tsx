@@ -1,5 +1,4 @@
 import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
 import { useAuth } from "@/context/auth.context";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { isValidEmail } from "@/utils/helpers";
@@ -12,6 +11,7 @@ import {
   TextInput,
   TouchableOpacity,
   useColorScheme,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import styles from "./styles";
@@ -86,7 +86,7 @@ export default function ForgotPassword() {
         }}
         keyboardShouldPersistTaps="handled"
       >
-        <ThemedView>
+        <View>
           <ThemedText style={styles.title}>Mot de passe oublié</ThemedText>
           <ThemedText style={styles.subtitle}>
             Entrez votre adresse email et nous vous enverrons un lien pour
@@ -133,7 +133,7 @@ export default function ForgotPassword() {
               Retour à la connexion
             </ThemedText>
           </TouchableOpacity>
-        </ThemedView>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );

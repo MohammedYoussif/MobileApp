@@ -39,6 +39,7 @@
     "expo-updates": "~0.28.12",
     "expo-web-browser": "~14.1.6",
     "i18next": "^25.1.2",
+    "lucide-react-native": "^0.510.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-i18next": "^15.5.1",
@@ -48,6 +49,7 @@
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.10.0",
+    "react-native-svg": "15.11.2",
     "react-native-url-polyfill": "^2.0.0",
     "react-native-web": "~0.20.0",
     "react-native-webview": "13.13.5"
