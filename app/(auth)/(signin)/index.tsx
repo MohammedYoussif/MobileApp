@@ -110,7 +110,7 @@ export default function Signin() {
 
         <View style={styles.formContainer}>
           <ThemedText type="bold" style={styles.title}>
-            {t("loginTitle")}
+            {t("signin.title")}
           </ThemedText>
 
           <View style={styles.inputContainer}>
@@ -161,7 +161,7 @@ export default function Signin() {
             onPress={() => navigation.push("/(auth)/ForgotPassword")}
           >
             <ThemedText style={styles.forgotText}>
-              {t("forgotPassword") || "Forgot Password"} ?
+              {t("forgotPassword.title") || "Forgot Password"} ?
             </ThemedText>
           </TouchableOpacity>
 

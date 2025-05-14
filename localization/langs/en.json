@@ -1,12 +1,45 @@
 {
     "translation": {
-        "loginTitle": "Login in to your account",
-        "signupTitle": "Create your account",
         "agreement": "By Signing Up you agree to our <terms>Terms & Conditions</terms> and <privacy>Privacy Policy</privacy>",
         "email": "Email",
         "password": "Password",
         "fullname": "Full name",
-        "forgotPassword": "Forgot password?",
+        "forgotPassword": {
+            "title": "Forgot Password?",
+            "subtitle": "Don't worry! It happens. Please enter Email Address",
+            "sendOtp": "Send reset email",
+            "sending": "Sending...",
+            "created": {
+                "title": "Password Reset Email Sent",
+                "body": "We've sent a link to reset your password to your email address. Please check your inbox and spam folder. If you don’t receive it within a few minutes, you can request a new link."
+            }
+        },
+        "signup": {
+            "title": "Create your account",
+            "created": {
+                "title": "Confirmation Email Sent",
+                "body": "We've sent a confirmation email to your address. Please check your inbox (and spam folder) to verify your account."
+            }
+        },
+        "signin": {
+            "title": "Login in to your account"
+        },
+        "resetPassword": {
+            "title": "Reset Password",
+            "chooseNewPassword": "Choose a new password for your account",
+            "enterNewPassword": "Enter Your New Password",
+            "confirmNewPassword": "Confirm New Password",
+            "submit": "Update Password",
+            "submiting": "Updating...",
+            "passwordTooShort": "Password must be at least 6 characters long",
+            "passwordMismatch": "Passwords do not match",
+            "passwordResetSuccess": "Password has been reset successfully",
+            "generalError": "An error occurred. Please try again.",
+            "created": {
+                "title": "Password Reset Successful",
+                "body": "Your password has been successfully reset! You can now use your new password to log in to your account. If you didn’t initiate this request, please contact support immediately."
+            }
+        },
         "continueWith": "Or continue with",
         "noAccount": "Don't have an account yet?",
         "haveAccount": "Have an account?",

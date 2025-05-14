@@ -27,12 +27,14 @@ export interface AuthContextType {
     loading: boolean;
     error: string | null;
     authInitialized: boolean;
+    resetParams: any;
 
     // Core auth methods
     login: (email: string, password: string) => Promise<User | null>;
     register: (email: string, password: string, displayName?: string) => Promise<User | null>;
     logout: () => Promise<void>;
     resetPassword: (email: string) => Promise<void>;
+    setResetParams: (params: any) => void;
 
     // Social auth methods
     googleSignIn: () => Promise<void>;

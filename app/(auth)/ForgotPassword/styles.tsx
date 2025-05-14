@@ -1,58 +1,53 @@
 import { StyleSheet } from "react-native";
 
 export default StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+    paddingHorizontal: 24,
+  },
+  backButton: {
+    marginBottom: 24,
+  },
+  contentContainer: {
+    flex: 1,
+  },
   title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 8,
-    textAlign: "center",
+    fontSize: 26,
+    color: "#222",
   },
   subtitle: {
-    fontSize: 14,
-    marginBottom: 28,
-    textAlign: "center",
-    color: "#888",
+    fontSize: 16,
+    color: "#222",
+    marginBottom: 12,
   },
-  label: {
-    fontSize: 15,
-    marginBottom: 6,
+  inputContainer: {
+    marginBottom: 12,
   },
   input: {
+    height: 48,
     borderWidth: 1,
+    borderColor: "#ddd",
     borderRadius: 8,
-    padding: 12,
+    paddingHorizontal: 16,
     fontSize: 16,
-    marginBottom: 8,
+    fontFamily: "Cairo-Regular",
+  },
+  otpButton: {
+    width: "100%",
+    height: 44,
+    backgroundColor: "#B38051",
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  otpButtonText: {
+    color: "white",
+    fontSize: 16,
   },
   errorText: {
     color: "red",
-    marginBottom: 8,
-    fontSize: 13,
-  },
-  successText: {
-    color: "green",
-    marginBottom: 8,
-    fontSize: 13,
-    textAlign: "center",
-  },
-  submitButton: {
-    borderRadius: 8,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 10,
-    marginBottom: 18,
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-  },
-  submitButtonText: {
-    fontSize: 17,
-    fontWeight: "bold",
-    color: "#222",
-  },
-  backLink: {
-    color: "#0066cc",
-    textDecorationLine: "underline",
-    fontSize: 15,
+    fontSize: 12,
+    marginTop: 4,
   },
 });

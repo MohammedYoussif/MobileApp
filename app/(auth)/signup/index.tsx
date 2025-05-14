@@ -16,6 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { showMessage } from "react-native-flash-message";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import styles from "./styles";
 
@@ -92,8 +93,16 @@ export default function SignUp() {
     if (fullnameError || emailError || passwordError) return;
 
     setLoading(true);
+
     try {
       await register(email, password, fullname);
+      showMessage({
+        message: t("signup.created.title"),
+        description: t("signup.created.body"),
+        type: "success",
+        duration: 4000,
+      });
+      navigation.back();
     } catch (error: any) {
       if (error.code === "auth/email-already-in-use") {
         setLoginError(t("errors.emailInUse"));
@@ -135,7 +144,7 @@ export default function SignUp() {
 
         <View style={styles.formContainer}>
           <ThemedText type="bold" style={styles.title}>
-            {t("signupTitle")}
+            {t("signup.title")}
           </ThemedText>
 
           <View style={styles.inputContainer}>

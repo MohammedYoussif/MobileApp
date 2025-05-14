@@ -1,140 +1,111 @@
 import { ThemedText } from "@/components/ThemedText";
 import { useAuth } from "@/context/auth.context";
-import { useThemeColor } from "@/hooks/useThemeColor";
 import { isValidEmail } from "@/utils/helpers";
+import Icon from "@expo/vector-icons/FontAwesome";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  useColorScheme,
-  View,
-} from "react-native";
+import { useTranslation } from "react-i18next";
+import { StatusBar, TextInput, TouchableOpacity, View } from "react-native";
+import { showMessage } from "react-native-flash-message";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import styles from "./styles";
 
 export default function ForgotPassword() {
-  const navigation = useRouter();
   const { resetPassword } = useAuth();
+  const { t } = useTranslation();
   const { top } = useSafeAreaInsets();
-  const isDark = (useColorScheme() ?? "light") === "dark";
-  const background = useThemeColor({}, "background");
-
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
-  const [message, setMessage] = useState("");
-  const [submitError, setSubmitError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  const handleBackPress = () => {
+    router.back();
+  };
 
   const handleEmailChange = (text: string) => {
     setEmail(text);
-    setMessage("");
-    setSubmitError("");
     if (!text) {
-      setEmailError("Email requis.");
+      setEmailError(t("errors.emailRequired"));
     } else if (!isValidEmail(text)) {
-      setEmailError("Veuillez entrer une adresse email valide.");
+      setEmailError(t("errors.invalidEmail"));
     } else {
       setEmailError("");
     }
   };
 
-  const handleReset = async () => {
-    setMessage("");
-    setSubmitError("");
-    if (!email) {
-      setEmailError("Email requis.");
-      return;
-    }
-    if (!isValidEmail(email)) {
-      setEmailError("Veuillez entrer une adresse email valide.");
-      return;
-    }
-    setLoading(true);
+  const handleResetPassword = async () => {
     try {
+      setIsLoading(true);
       await resetPassword(email);
-      setMessage("Un email de réinitialisation a été envoyé.");
-    } catch (error: any) {
-      if (error.code === "auth/user-not-found") {
-        setSubmitError("Aucun utilisateur trouvé avec cet email.");
-      } else if (error.code === "auth/invalid-email") {
-        setSubmitError("Adresse email invalide.");
-      } else {
-        setSubmitError(
-          "Erreur lors de la réinitialisation. Veuillez réessayer."
-        );
-      }
+      handleBackPress();
+      showMessage({
+        message: t("forgotPassword.created.title"),
+        description: t("forgotPassword.created.body"),
+        type: "success",
+        duration: 4000,
+      });
+    } finally {
+      setIsLoading(false);
     }
-    setLoading(false);
   };
 
-  const canSubmit = !!email && !emailError && !loading;
-
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: background, paddingTop: top }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    <View
+      style={[
+        styles.container,
+        { paddingTop: top + (StatusBar.currentHeight ?? 0) },
+      ]}
     >
-      <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          justifyContent: "center",
-          padding: 24,
-        }}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View>
-          <ThemedText style={styles.title}>Mot de passe oublié</ThemedText>
-          <ThemedText style={styles.subtitle}>
-            Entrez votre adresse email et nous vous enverrons un lien pour
-            réinitialiser votre mot de passe.
-          </ThemedText>
+      <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
+        <Icon name="chevron-left" size={24} color="#777" />
+      </TouchableOpacity>
 
-          <ThemedText style={styles.label}>Email</ThemedText>
+      {/* Main Content */}
+      <View style={styles.contentContainer}>
+        <ThemedText type="bold" style={styles.title}>
+          {t("forgotPassword.title")}
+        </ThemedText>
+        <ThemedText type="medium" style={styles.subtitle}>
+          {t("forgotPassword.subtitle")}
+        </ThemedText>
+
+        {/* Input Field */}
+        <View style={styles.inputContainer}>
           <TextInput
-            style={[styles.input, { color: isDark ? "#fff" : "#000" }]}
-            placeholder="name@example.com"
+            style={styles.input}
+            placeholder={t("email") || "Email"}
             value={email}
             onChangeText={handleEmailChange}
             keyboardType="email-address"
             autoCapitalize="none"
             placeholderTextColor="#aaa"
-            editable={!loading}
+            editable={!isLoading}
           />
           {emailError ? (
             <ThemedText style={styles.errorText}>{emailError}</ThemedText>
           ) : null}
-
-          <TouchableOpacity
-            style={[styles.submitButton, { opacity: canSubmit ? 1 : 0.5 }]}
-            onPress={handleReset}
-            disabled={!canSubmit}
-          >
-            <ThemedText style={styles.submitButtonText}>
-              {loading ? "Envoi..." : "Réinitialiser le mot de passe"}
-            </ThemedText>
-          </TouchableOpacity>
-          {submitError ? (
-            <ThemedText style={styles.errorText}>{submitError}</ThemedText>
-          ) : null}
-          {message ? (
-            <ThemedText style={styles.successText}>{message}</ThemedText>
-          ) : null}
-
-          <TouchableOpacity
-            style={{ marginTop: 24, alignSelf: "center" }}
-            onPress={() => navigation.back()}
-            disabled={loading}
-          >
-            <ThemedText style={styles.backLink}>
-              Retour à la connexion
-            </ThemedText>
-          </TouchableOpacity>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+
+        {/* Send OTP Button */}
+        <TouchableOpacity
+          style={[
+            styles.otpButton,
+            {
+              opacity:
+                isLoading || email.trim() === "" || emailError !== "" ? 0.5 : 1,
+            },
+          ]}
+          disabled={isLoading || email.trim() === "" || emailError !== ""}
+          onPress={handleResetPassword}
+        >
+          <ThemedText type="bold" style={styles.otpButtonText}>
+            {isLoading
+              ? t("forgotPassword.sending")
+              : t("forgotPassword.sendOtp")}
+          </ThemedText>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }

@@ -1,13 +1,12 @@
 // src/context/AuthContext.tsx
 import { supabase } from "@/lib/supabase";
 import { AuthContextType, AuthProviderProps, AuthUser } from "@/types";
+import {
+  GoogleSignin,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
 import * as AppleAuthentication from "expo-apple-authentication";
-import * as Google from "expo-auth-session/providers/google";
-import { maybeCompleteAuthSession } from "expo-web-browser";
 import React, { createContext, useContext, useEffect, useState } from "react";
-
-// Complete the auth session for expo-auth-session
-maybeCompleteAuthSession();
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -16,39 +15,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [authInitialized, setAuthInitialized] = useState<boolean>(false);
+  const [resetParams, setResetParams] = useState<any>();
 
-  // Configure Google OAuth
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: "",
-    // webClientId: process.env.EXPO_PUBLIC_GID,
-  });
-
-  // Handle Google Sign-in
   useEffect(() => {
-    if (response?.type === "success") {
-      const { accessToken } = response.authentication || {};
-      if (accessToken) {
-        handleGoogleToken(accessToken);
-      }
-    }
-  }, [response]);
+    GoogleSignin.configure({
+      webClientId:
+        "314892553525-jo89sobra69uisf0egi5q3mai0rcl30j.apps.googleusercontent.com",
+      iosClientId:
+        "314892553525-49lu03aeb8intjc7pq9fpjc414cgfvut.apps.googleusercontent.com",
+      offlineAccess: true,
+      forceCodeForRefreshToken: true,
+      profileImageSize: 120,
+    });
+  }, []);
 
-  // Handle the Google token
-  const handleGoogleToken = async (accessToken: string) => {
-    try {
-      const { data, error } = await supabase.auth.signInWithIdToken({
-        provider: "google",
-        token: accessToken,
-      });
-
-      if (error) throw error;
-    } catch (error: any) {
-      console.error("Error with Google sign in:", error.message);
-      setError(error.message);
-    }
-  };
-
-  // Listen for auth state changes
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -76,7 +56,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     );
 
-    // Check initial session
     const checkSession = async () => {
       try {
         const {
@@ -139,6 +118,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email,
         password,
         options: {
+          emailRedirectTo: "https://dashboard.bexpo.xyz/",
           data: {
             full_name: displayName,
           },
@@ -156,6 +136,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async (): Promise<void> => {
     try {
       setError(null);
+      await GoogleSignin.signOut();
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
     } catch (error: any) {
@@ -168,7 +149,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setError(null);
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        // redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: "https://dashboard.bexpo.xyz/reset-password-handler",
       });
 
       if (error) throw error;
@@ -181,11 +162,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const googleSignIn = async (): Promise<void> => {
     try {
       setError(null);
-      await promptAsync();
+
+      await GoogleSignin.hasPlayServices();
+
+      const userInfo = await GoogleSignin.signIn();
+
+      if (userInfo.data?.idToken) {
+        const { error } = await supabase.auth.signInWithIdToken({
+          provider: "google",
+          token: userInfo.data.idToken,
+        });
+
+        if (error) throw error;
+      } else {
+        throw new Error("No ID token returned from Google Sign-In");
+      }
     } catch (error: any) {
-      setError(error.message || "Unknown error during Google Sign-In");
-      console.error("Google Sign-In Error:", error);
-      throw error;
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        console.log("Sign in cancelled");
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        console.log("Sign in already in progress");
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        console.log("Play services not available");
+        setError("Google Play Services not available");
+      } else {
+        setError(error.message || "Unknown error during Google Sign-In");
+        console.error("Google Sign-In Error:", error);
+        throw error;
+      }
     }
   };
 
@@ -193,7 +197,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setError(null);
 
-      // Request Apple authentication
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
           AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
@@ -202,7 +205,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (credential.identityToken) {
-        // Exchange the Apple token with Supabase
         const { data, error } = await supabase.auth.signInWithIdToken({
           provider: "apple",
           token: credential.identityToken,
@@ -215,7 +217,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     } catch (error: any) {
       if (error.code === "ERR_REQUEST_CANCELED") {
-        // User cancelled Apple Sign-in
         return;
       }
       setError(error.message);
@@ -226,8 +227,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const revokeAppleSignIn = async (): Promise<void> => {
     try {
       setError(null);
-      // With Supabase, we can just sign out the user
-      // Since Supabase doesn't have a direct method to revoke Apple tokens
       await logout();
     } catch (error: any) {
       setError(error.message);
@@ -251,7 +250,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (error) throw error;
 
-      // Update local state
       setCurrentUser((prevUser) =>
         prevUser
           ? {
@@ -272,6 +270,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading,
     error,
     authInitialized,
+    resetParams,
+    setResetParams,
     login,
     register,
     logout,
