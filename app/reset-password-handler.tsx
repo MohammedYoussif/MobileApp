@@ -1,6 +1,7 @@
 import { ThemedText } from "@/components/ThemedText";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
+import Icon from "@expo/vector-icons/FontAwesome";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -98,11 +99,11 @@ export default function ResetPassword() {
         { paddingTop: top + (StatusBar.currentHeight ?? 0) },
       ]}
     >
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <Ionicons name="chevron-back" size={24} color="#000" />
+      <TouchableOpacity onPress={router.back} style={styles.backButton}>
+        <Icon name="chevron-left" size={24} color="#777" />
       </TouchableOpacity>
 
-      <View style={styles.content}>
+      <View style={styles.contentContainer}>
         <ThemedText type="bold" style={styles.title}>
           {t("resetPassword.title")}
         </ThemedText>
@@ -203,7 +204,7 @@ const styles = StyleSheet.create({
   backButton: {
     marginBottom: 24,
   },
-  content: {
+  contentContainer: {
     flex: 1,
   },
   title: {
@@ -227,16 +228,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Cairo-Regular",
   },
-  eyeIcon: {
-    position: "absolute",
-    right: 16,
-    top: 12,
-  },
-  errorText: {
-    color: "red",
-    fontSize: 12,
-    marginBottom: 12,
-  },
   submitButton: {
     width: "100%",
     height: 44,
@@ -248,5 +239,15 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: "white",
     fontSize: 16,
+  },
+  errorText: {
+    color: "red",
+    fontSize: 12,
+    marginTop: 4,
+  },
+  eyeIcon: {
+    position: "absolute",
+    right: 16,
+    top: 12,
   },
 });
