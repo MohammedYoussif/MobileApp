@@ -6006,6 +6006,11 @@ react-native-gesture-handler@~2.24.0:
     hoist-non-react-statics "^3.3.0"
     invariant "^2.2.4"
 
+react-native-iap@^12.16.2:
+  version "12.16.2"
+  resolved "https://registry.yarnpkg.com/react-native-iap/-/react-native-iap-12.16.2.tgz#56d870e5bd851ceafe3990089ec7099feee451cd"
+  integrity sha512-pIyO3eSZkYJYLdgDF90Or2wUsbiiYwa5xgUpaHBqZuVEk5Nz0ZDN4acwoXFfPa/a52MmQOYEeHbYLAQQW0o+rg==
+
 react-native-iphone-screen-helper@^2.0.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/react-native-iphone-screen-helper/-/react-native-iphone-screen-helper-2.1.2.tgz#6b376f71616080294c1b39c2fe064120ffdc79bf"

@@ -12,15 +12,21 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.exponfc.exponfc",
-      "buildNumber": "17",
+      "buildNumber": "22",
       "associatedDomains": [
         "applinks:bexpo.xyz",
         "applinks:dashboard.bexpo.xyz"
-      ]
+      ],
+      "infoPlist": {
+        "ExpoLocalization_supportsRTL": true
+      }
     },
     "android": {
       "edgeToEdgeEnabled": true,
       "package": "com.exponfc.exponfc",
+      "permissions": [
+        "BILLING"
+      ],
       "intentFilters": [
         {
           "action": "VIEW",
@@ -32,7 +38,10 @@
               "pathPrefix": "/"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         },
         {
           "action": "VIEW",
@@ -44,12 +53,19 @@
               "pathPrefix": "/"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
     "extra": {
-      "supportsRTL": true
+      "supportsRTL": true,
+      "router": {},
+      "eas": {
+        "projectId": "7d7bd1c2-f042-4273-8144-4072d913dea7"
+      }
     },
     "plugins": [
       "expo-router",
@@ -58,6 +74,12 @@
         "@react-native-google-signin/google-signin",
         {
           "iosUrlScheme": "com.googleusercontent.apps.314892553525-49lu03aeb8intjc7pq9fpjc414cgfvut"
+        }
+      ],
+      [
+        "react-native-iap",
+        {
+          "paymentProvider": "both"
         }
       ]
     ],
