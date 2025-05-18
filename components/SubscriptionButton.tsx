@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Platform,
   StyleSheet,
@@ -11,23 +12,24 @@ import * as RNIap from "react-native-iap";
 
 // Define subscription product IDs
 const subscriptionIds = Platform.select<string[]>({
-  ios: ["your_ios_subscription_id_yearly"],
-  android: ["your_android_subscription_id_yearly"],
+  ios: ["BusinessYearly"],
+  android: ["expo_yearly_plan"],
 });
 
 // Define types for component props
 interface SubscriptionButtonProps {
   onSubscribe?: (purchase: RNIap.Purchase) => void;
-  buttonTitle?: string;
+  offerButtonTitle?: string;
 }
 
 const SubscriptionButton: React.FC<SubscriptionButtonProps> = ({
   onSubscribe,
-  buttonTitle = "Subscribe Yearly",
+  offerButtonTitle = "Subscribe with Special Offer",
 }) => {
   const [products, setProducts] = useState<RNIap.Subscription[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [connected, setConnected] = useState<boolean>(false);
+  const [fetchingProducts, setFetchingProducts] = useState<boolean>(true);
 
   // Initialize IAP connection
   useEffect(() => {
@@ -84,6 +86,7 @@ const SubscriptionButton: React.FC<SubscriptionButtonProps> = ({
   // Fetch available products
   const fetchProducts = async (): Promise<void> => {
     try {
+      setFetchingProducts(true);
       if (!subscriptionIds) {
         console.log("No subscription IDs available for this platform");
         return;
@@ -94,6 +97,8 @@ const SubscriptionButton: React.FC<SubscriptionButtonProps> = ({
       console.log("Available products:", result);
     } catch (error) {
       console.log("Error fetching products", error);
+    } finally {
+      setFetchingProducts(false);
     }
   };
 
@@ -114,8 +119,10 @@ const SubscriptionButton: React.FC<SubscriptionButtonProps> = ({
     }
   };
 
-  // Request a purchase
-  const requestSubscription = async (): Promise<void> => {
+  // Request a subscription with promotional offer
+  const requestSubscriptionWithOffer = async (
+    productId?: string
+  ): Promise<void> => {
     if (!connected) {
       Alert.alert("Not connected", "Store connection not established");
       return;
@@ -134,25 +141,35 @@ const SubscriptionButton: React.FC<SubscriptionButtonProps> = ({
         return;
       }
 
-      const productId =
-        Platform.OS === "ios" ? subscriptionIds[0] : subscriptionIds[0];
+      // Use provided productId or default to first product
+      const sku = productId || subscriptionIds[0];
 
-      if (!productId) {
+      if (!sku) {
         Alert.alert("Error", "Subscription product not available");
         setLoading(false);
         return;
       }
+      const offerToken = (products[0] as any).subscriptionOfferDetails.find(
+        (e: any) => e.offerId !== null
+      ).offerToken;
 
-      // Request subscription purchase
-      await RNIap.requestSubscription({ sku: productId });
+      await RNIap.requestSubscription({
+        sku,
+        subscriptionOffers: [
+          {
+            sku,
+            offerToken: offerToken,
+          },
+        ],
+      });
 
       // Note: The purchase will be handled by the purchaseUpdatedListener
     } catch (error: any) {
-      console.log("Subscription error", error);
+      console.log("Subscription with offer error", error);
       if (error.code !== "E_USER_CANCELLED") {
         Alert.alert(
           "Subscription Failed",
-          "There was an error processing your subscription"
+          "There was an error processing your subscription with the special offer"
         );
       }
     } finally {
@@ -160,17 +177,96 @@ const SubscriptionButton: React.FC<SubscriptionButtonProps> = ({
     }
   };
 
+  // Get price from product safely
+  const getProductPrice = (product: RNIap.Subscription): string => {
+    if (Platform.OS === "ios") {
+      // Handle iOS product
+      const iosProduct = product as RNIap.SubscriptionIOS;
+      return iosProduct.price || "Price unavailable";
+    } else {
+      // Handle Android product
+      const androidProduct = product as RNIap.SubscriptionAndroid;
+      return (
+        androidProduct.subscriptionOfferDetails[0].pricingPhases
+          .pricingPhaseList[0].formattedPrice || "Price unavailable"
+      );
+    }
+  };
+
+  // Get subscription period safely
+  const getSubscriptionPeriod = (product: RNIap.Subscription): string => {
+    if (Platform.OS === "android") {
+      // Handle Android product
+      const androidProduct = product as RNIap.SubscriptionAndroid;
+      const period =
+        androidProduct.subscriptionOfferDetails[0].pricingPhases
+          .pricingPhaseList[0].billingPeriod;
+
+      if (period) {
+        if (period.includes("Y"))
+          return `${period.replace("P", "").replace("Y", "")} Year`;
+        if (period.includes("M"))
+          return `${period.replace("P", "").replace("M", "")} Month`;
+        if (period.includes("W"))
+          return `${period.replace("P", "").replace("W", "")} Week`;
+        if (period.includes("D"))
+          return `${period.replace("P", "").replace("D", "")} Day`;
+      }
+    }
+
+    // For iOS or fallback
+    if (product.title) {
+      if (product.title.toLowerCase().includes("year")) return "Yearly";
+      if (product.title.toLowerCase().includes("month")) return "Monthly";
+    }
+
+    return "Subscription";
+  };
+
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={[styles.button, loading && styles.buttonDisabled]}
-        onPress={requestSubscription}
-        disabled={loading || !connected}
-      >
-        <Text style={styles.buttonText}>
-          {loading ? "Processing..." : buttonTitle}
-        </Text>
-      </TouchableOpacity>
+      {fetchingProducts ? (
+        <ActivityIndicator size="large" color="#4285F4" />
+      ) : (
+        <>
+          {products.length > 0 && (
+            <View style={styles.productInfo}>
+              {products.map((product) => (
+                <View key={product.productId} style={styles.productDetails}>
+                  <Text style={styles.productTitle}>{product.title}</Text>
+                  {product.description && (
+                    <Text style={styles.productDescription}>
+                      {product.description}
+                    </Text>
+                  )}
+                  <View style={styles.pricingRow}>
+                    <Text style={styles.productPrice}>
+                      {getProductPrice(product)}
+                    </Text>
+                    <Text style={styles.productPeriod}>
+                      / {getSubscriptionPeriod(product)}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={[
+              styles.button,
+              styles.offerButton,
+              loading && styles.buttonDisabled,
+            ]}
+            onPress={() => requestSubscriptionWithOffer(products[0]?.productId)}
+            disabled={loading || !connected}
+          >
+            <Text style={styles.buttonText}>
+              {loading ? "Processing..." : offerButtonTitle}
+            </Text>
+          </TouchableOpacity>
+        </>
+      )}
     </View>
   );
 };
@@ -180,6 +276,47 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 16,
+    width: "100%",
+  },
+  productInfo: {
+    width: "100%",
+    marginBottom: 16,
+  },
+  productDetails: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    width: "100%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  productTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 8,
+  },
+  productDescription: {
+    fontSize: 14,
+    color: "#666666",
+    marginBottom: 12,
+  },
+  pricingRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+  },
+  productPrice: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#000",
+  },
+  productPeriod: {
+    fontSize: 16,
+    color: "#666666",
+    marginLeft: 4,
   },
   button: {
     backgroundColor: "#4285F4",
@@ -191,6 +328,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
+    width: "100%",
+  },
+  offerButton: {
+    backgroundColor: "#34A853", // Different color for the offer button
   },
   buttonDisabled: {
     backgroundColor: "#A9A9A9",

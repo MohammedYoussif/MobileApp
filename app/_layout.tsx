@@ -15,7 +15,7 @@ import FlashMessage, { showMessage } from "react-native-flash-message";
 import "react-native-reanimated";
 
 function AppNavigator() {
-  const { authInitialized, setResetParams } = useAuth();
+  const { authInitialized } = useAuth();
   const [fontsLoaded] = useFonts({
     "Cairo-Regular": require("../assets/fonts/Cairo-Regular.ttf"),
     "Cairo-Bold": require("../assets/fonts/Cairo-Bold.ttf"),
@@ -46,7 +46,7 @@ function AppNavigator() {
 
         const error = params.get("error");
         const errorDescription = params.get("error_description");
-        if (url.includes("access_token=")) {
+        if (url.includes("token_type=bearer&type=signup")) {
           showMessage({
             message: "Success",
             description: "Email has been verified successfully.",
@@ -69,7 +69,6 @@ function AppNavigator() {
 
     // When the app is already running and receives a link
     const subscription = Linking.addEventListener("url", ({ url }) => {
-      console.log(url);
       const parsedUrl = new URL(url.replace("#", "?"));
       const params = parsedUrl.searchParams;
 

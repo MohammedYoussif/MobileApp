@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "BExpo",
+    "name": "B.Expo",
     "slug": "BExpo",
     "splash": null,
     "version": "1.0.0",
@@ -22,6 +22,7 @@
       }
     },
     "android": {
+      "versionCode": 4,
       "edgeToEdgeEnabled": true,
       "package": "com.exponfc.exponfc",
       "permissions": [

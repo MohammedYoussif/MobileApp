@@ -1,6 +1,11 @@
 // src/context/AuthContext.tsx
 import { supabase } from "@/lib/supabase";
-import { AuthContextType, AuthProviderProps, AuthUser } from "@/types";
+import {
+  AuthContextType,
+  AuthProviderProps,
+  AuthUser,
+  UserProfile,
+} from "@/types";
 import {
   GoogleSignin,
   statusCodes,
@@ -12,10 +17,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [profileLoading, setProfileLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [authInitialized, setAuthInitialized] = useState<boolean>(false);
   const [resetParams, setResetParams] = useState<any>();
+  const [profileComplete, setProfileComplete] = useState<boolean>(false);
+  const [categories, setCategories] = useState<any[]>([]);
 
   useEffect(() => {
     GoogleSignin.configure({
@@ -28,6 +37,90 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       profileImageSize: 120,
     });
   }, []);
+
+  // Fetch categories once on component mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("categories")
+          .select("*")
+          .order("name");
+
+        if (error) {
+          console.error("Error fetching categories:", error);
+        } else if (data) {
+          setCategories(data);
+        }
+      } catch (err) {
+        console.error("Categories fetch error:", err);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // Fetch user profile from Supabase when user is authenticated
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!currentUser) {
+        setUserProfile(null);
+        setProfileComplete(false);
+        return;
+      }
+
+      try {
+        setProfileLoading(true);
+        // Use the user_profiles view to get combined data
+        const { data, error } = await supabase
+          .from("user_profiles")
+          .select("*")
+          .eq("id", currentUser.uid)
+          .single();
+
+        if (error) {
+          console.error("Error fetching profile:", error);
+          setUserProfile(null);
+          setProfileComplete(false);
+        } else if (data) {
+          const profile: UserProfile = {
+            id: data.id,
+            fullName: data.full_name || "",
+            dateOfBirth: data.date_of_birth || "",
+            email: data.email || currentUser.email || "",
+            city: data.city || "",
+            whatsappBusiness: data.whatsapp_business || "",
+            contactPerson: data.contact_person || "",
+            bio: data.bio || "",
+            companyName: data.company_name || "",
+            profilePicture: data.profile_picture || null,
+            coverPicture: data.cover_picture || null,
+            categoryId: data.category_id || null,
+            categoryName: data.category_name || "",
+            categoryImageUrl: data.category_image_url || null,
+            accountType: data.account_type || "personal",
+            socialLinks: data.social_links || {
+              instagram: "",
+              twitter: "",
+              whatsapp: "",
+            },
+            createdAt: data.created_at,
+            updatedAt: data.updated_at,
+          };
+
+          setUserProfile(profile);
+
+          setProfileComplete(data.is_completed);
+        }
+      } catch (err) {
+        console.error("Profile fetch error:", err);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [currentUser]);
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
@@ -265,12 +358,185 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // New function to save the complete profile
+  const saveProfile = async (
+    profileData: Partial<UserProfile>
+  ): Promise<void> => {
+    if (!currentUser) {
+      throw new Error("No authenticated user found");
+    }
+
+    try {
+      setError(null);
+      setProfileLoading(true);
+
+      // Format the profile data for Supabase
+      const formattedData = {
+        id: currentUser.uid,
+        full_name: profileData.fullName,
+        date_of_birth: profileData.dateOfBirth,
+        email: profileData.email || currentUser.email,
+        city: profileData.city,
+        whatsapp_business: profileData.whatsappBusiness,
+        contact_person: profileData.contactPerson,
+        bio: profileData.bio,
+        company_name: profileData.companyName,
+        profile_picture: profileData.profilePicture,
+        cover_picture: profileData.coverPicture,
+        category_id: profileData.categoryId,
+        account_type: profileData.accountType || "personal",
+        social_links: profileData.socialLinks,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Upload profile picture if it's a local file URI
+      if (
+        profileData.profilePicture &&
+        profileData.profilePicture.startsWith("file://")
+      ) {
+        const filePath = `profiles/${currentUser.uid}/profile-${Date.now()}`;
+        await uploadImage(
+          profileData.profilePicture,
+          filePath,
+          "profile_picture",
+          formattedData
+        );
+      }
+
+      // Upload cover picture if it's a local file URI
+      if (
+        profileData.coverPicture &&
+        profileData.coverPicture.startsWith("file://")
+      ) {
+        const filePath = `profiles/${currentUser.uid}/cover-${Date.now()}`;
+        await uploadImage(
+          profileData.coverPicture,
+          filePath,
+          "cover_picture",
+          formattedData
+        );
+      }
+
+      // Save to profiles table
+      const { error } = await supabase
+        .from("profiles")
+        .upsert(formattedData)
+        .select();
+
+      if (error) throw error;
+
+      // Fetch the category information for the updated profile
+      let categoryName = "";
+      let categoryImageUrl = null;
+
+      if (formattedData.category_id) {
+        const { data: categoryData } = await supabase
+          .from("categories")
+          .select("name, image_url")
+          .eq("id", formattedData.category_id)
+          .single();
+
+        if (categoryData) {
+          categoryName = categoryData.name;
+          categoryImageUrl = categoryData.image_url;
+        }
+      }
+
+      // Update the user profile state
+      setUserProfile(
+        (prevProfile) =>
+          ({
+            ...prevProfile,
+            ...profileData,
+            id: currentUser.uid,
+            updatedAt: new Date().toISOString(),
+            categoryName: categoryName,
+            categoryImageUrl: categoryImageUrl,
+          } as UserProfile)
+      );
+
+      // Update profile completion status
+      const isComplete =
+        profileData.accountType === "personal"
+          ? !!(
+              profileData.fullName ||
+              ((prevProfile: any) => prevProfile?.fullName)
+            )
+          : !!(
+              profileData.companyName ||
+              ((prevProfile: any) => prevProfile?.companyName)
+            );
+
+      setProfileComplete(isComplete);
+    } catch (error: any) {
+      console.error("Error saving profile:", error);
+      setError(error.message);
+      throw error;
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  // Helper function to upload images to Supabase Storage
+  const uploadImage = async (
+    fileUri: string,
+    path: string,
+    fieldName: string,
+    formattedData: any
+  ) => {
+    try {
+      // Fetch the file
+      const response = await fetch(fileUri);
+      const blob = await response.blob();
+
+      // Upload to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from("user-uploads")
+        .upload(path, blob, {
+          contentType: "image/jpeg", // Adjust based on your image type
+          upsert: true,
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: publicUrlData } = supabase.storage
+        .from("user-uploads")
+        .getPublicUrl(path);
+
+      // Update the field in the formatted data
+      formattedData[fieldName] = publicUrlData.publicUrl;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      throw error;
+    }
+  };
+
+  // Get all available categories
+  const getCategories = () => {
+    return categories;
+  };
+
+  // Get category by ID
+  const getCategoryById = (id: string) => {
+    return categories.find((cat) => cat.id === id) || null;
+  };
+
+  // Get category name by ID
+  const getCategoryNameById = (id: string) => {
+    const category = categories.find((cat) => cat.id === id);
+    return category ? category.name : "";
+  };
+
   const value: AuthContextType = {
     currentUser,
+    userProfile,
     loading,
+    profileLoading,
     error,
     authInitialized,
     resetParams,
+    profileComplete,
     setResetParams,
     login,
     register,
@@ -280,6 +546,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     appleSignIn,
     revokeAppleSignIn,
     updateUserProfile,
+    saveProfile,
+    getCategories,
+    getCategoryById,
+    getCategoryNameById,
   };
 
   if (!authInitialized && loading) {

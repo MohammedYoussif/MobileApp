@@ -7,7 +7,7 @@ export default function AuthLayout() {
 
   if (currentUser) {
     // Already logged in, redirect to app home
-    return <Redirect href="/(app)/(home)" />;
+    return <Redirect href="/(app)" />;
   }
 
   return <Stack screenOptions={{ headerShown: false }} />;
