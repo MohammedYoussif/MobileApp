@@ -25,9 +25,7 @@
       "versionCode": 4,
       "edgeToEdgeEnabled": true,
       "package": "com.exponfc.exponfc",
-      "permissions": [
-        "BILLING"
-      ],
+      "permissions": ["BILLING"],
       "intentFilters": [
         {
           "action": "VIEW",
@@ -39,10 +37,7 @@
               "pathPrefix": "/"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         },
         {
           "action": "VIEW",
@@ -54,10 +49,7 @@
               "pathPrefix": "/"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ]
     },
@@ -81,6 +73,20 @@
         "react-native-iap",
         {
           "paymentProvider": "both"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow BExpo to access your camera"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow BExpo to access your camera",
+          "microphonePermission": "Allow BExpo to access your microphone",
+          "recordAudioAndroid": true
         }
       ]
     ],
