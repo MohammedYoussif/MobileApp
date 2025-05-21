@@ -35,6 +35,8 @@ const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
       quality: 0.8,
     });
 
+    console.log("Image Picker Result:", result);
+
     if (!result.canceled && result.assets?.[0]?.uri) {
       setImage(result.assets[0].uri);
       onImageSelected(result.assets[0].uri);

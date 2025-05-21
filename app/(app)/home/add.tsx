@@ -3,7 +3,7 @@ import { useAuth } from "@/context/auth.context";
 import { Search } from "lucide-react-native";
 import { FlatList, Image, SafeAreaView, Text, View } from "react-native";
 
-export default function Home() {
+export default function Add() {
   const { userProfile, getCategories, logout } = useAuth();
 
   console.log("The Cates", getCategories());

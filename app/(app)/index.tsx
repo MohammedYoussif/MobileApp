@@ -28,8 +28,16 @@ const LoadingScreen = () => {
 const ProfileSetupFlow: React.FC = () => {
   const navigation = useRouter();
   const { top } = useSafeAreaInsets();
-  const { userProfile, profileLoading, saveProfile, profileComplete } =
-    useAuth();
+  const {
+    userProfile,
+    profileLoading,
+    saveProfile,
+    profileComplete,
+    currentUser,
+  } = useAuth();
+
+  // console.log("The currentUser:", currentUser);
+  console.log("The userProfile:", userProfile);
 
   const [accountType, setAccountType] = useState<AccountType>(
     (userProfile?.accountType as AccountType) || "personal"
@@ -43,6 +51,15 @@ const ProfileSetupFlow: React.FC = () => {
       navigation.replace("/(app)/home");
     }
   }, [profileComplete, navigation]);
+
+  useEffect(() => {
+    if (userProfile)
+      setFormData({
+        ...userProfile,
+        category: userProfile?.categoryId || formData.category,
+        dateOfBirth: userProfile.dateOfBirth || undefined,
+      });
+  }, [userProfile]);
 
   // Handle loading state
   if (profileLoading) {
@@ -158,6 +175,13 @@ const ProfileSetupFlow: React.FC = () => {
             onContinue={handleContinue}
             onBack={handleBack}
             onSkip={handleSkip}
+            socialLinks={formData?.socialLinks}
+            setSocialLinks={(socialLinks: any) => {
+              setFormData({
+                ...formData,
+                socialLinks: { ...socialLinks },
+              });
+            }}
           />
         );
       } else if (currentStep === 3) {
@@ -167,6 +191,8 @@ const ProfileSetupFlow: React.FC = () => {
             onBack={handleBack}
             onComplete={handleComplete}
             onSkip={handleSkip}
+            formData={formData}
+            setFormData={setFormData}
           />
         );
       }

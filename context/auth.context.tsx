@@ -89,6 +89,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             dateOfBirth: data.date_of_birth || "",
             email: data.email || currentUser.email || "",
             city: data.city || "",
+            category: data.category || null,
             whatsappBusiness: data.whatsapp_business || "",
             contactPerson: data.contact_person || "",
             bio: data.bio || "",
@@ -383,11 +384,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         company_name: profileData.companyName,
         profile_picture: profileData.profilePicture,
         cover_picture: profileData.coverPicture,
-        category_id: profileData.categoryId,
+        category_id: profileData.category,
         account_type: profileData.accountType || "personal",
         social_links: profileData.socialLinks,
         updated_at: new Date().toISOString(),
+        // is_completed: true,
       };
+
+      console.log("Profile Data:", profileData);
 
       // Upload profile picture if it's a local file URI
       if (
@@ -497,12 +501,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           upsert: true,
         });
 
+      console.log("Upload response:", data);
+      console.log("Upload error:", error);
+
       if (error) throw error;
 
       // Get public URL
       const { data: publicUrlData } = supabase.storage
         .from("user-uploads")
         .getPublicUrl(path);
+
+      console.log("Public URL data:", publicUrlData);
 
       // Update the field in the formatted data
       formattedData[fieldName] = publicUrlData.publicUrl;

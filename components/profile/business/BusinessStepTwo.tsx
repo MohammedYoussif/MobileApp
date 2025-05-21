@@ -1,6 +1,6 @@
 // components/business/BusinessStepTwo.js
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -33,12 +33,19 @@ const SocialMediaLink = ({ icon, platform, value, onChangeText }: any) => {
   );
 };
 
-const BusinessStepTwo = ({ userData, onContinue, onBack, onSkip }: any) => {
-  const [socialLinks, setSocialLinks] = useState({
+const BusinessStepTwo = ({
+  userData,
+  onContinue,
+  onBack,
+  onSkip,
+  socialLinks,
+  setSocialLinks,
+}: any) => {
+  /* const [socialLinks, setSocialLinks] = useState({
     instagram: userData.socialLinks?.instagram || "",
     twitter: userData.socialLinks?.twitter || "",
     whatsapp: userData.socialLinks?.whatsapp || "",
-  });
+  }); */
 
   const handleSocialLinkChange = (platform: any, value: any) => {
     setSocialLinks({
@@ -58,7 +65,10 @@ const BusinessStepTwo = ({ userData, onContinue, onBack, onSkip }: any) => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingHorizontal: 16 }}
+    >
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#000" />
