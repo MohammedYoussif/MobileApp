@@ -89,6 +89,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             dateOfBirth: data.date_of_birth || "",
             email: data.email || currentUser.email || "",
             city: data.city || "",
+            category: data.category || null,
             whatsappBusiness: data.whatsapp_business || "",
             contactPerson: data.contact_person || "",
             bio: data.bio || "",
@@ -383,10 +384,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         company_name: profileData.companyName,
         profile_picture: profileData.profilePicture,
         cover_picture: profileData.coverPicture,
-        category_id: profileData.categoryId,
+        category_id: profileData.category,
         account_type: profileData.accountType || "personal",
         social_links: profileData.socialLinks,
         updated_at: new Date().toISOString(),
+        is_completed: true,
       };
 
       // Upload profile picture if it's a local file URI
@@ -485,27 +487,57 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     formattedData: any
   ) => {
     try {
-      // Fetch the file
+      // Make sure we have a valid file URI
+      if (!fileUri) {
+        throw new Error("No file URI provided");
+      }
+
+      // Fetch the file with proper error handling
       const response = await fetch(fileUri);
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch image: ${response.status} ${response.statusText}`
+        );
+      }
+
+      // Get the blob with size verification
       const blob = await response.blob();
 
-      // Upload to Supabase Storage
+      console.log("blob:", blob);
+
+      if (blob.size === 0) {
+        throw new Error("Retrieved blob is empty");
+      }
+
+      // Get the correct content type
+      const contentType = blob.type || "image/jpeg";
+
+      // Upload to Supabase Storage with proper error handling
       const { data, error } = await supabase.storage
         .from("user-uploads")
         .upload(path, blob, {
-          contentType: "image/jpeg", // Adjust based on your image type
+          contentType: contentType,
           upsert: true,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase upload error:", error);
+        throw error;
+      }
 
       // Get public URL
       const { data: publicUrlData } = supabase.storage
         .from("user-uploads")
         .getPublicUrl(path);
 
+      if (!publicUrlData?.publicUrl) {
+        throw new Error("Failed to get public URL for uploaded image");
+      }
+
       // Update the field in the formatted data
       formattedData[fieldName] = publicUrlData.publicUrl;
+
+      return publicUrlData.publicUrl;
     } catch (error) {
       console.error("Error uploading image:", error);
       throw error;

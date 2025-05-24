@@ -344,23 +344,24 @@ export default function IntroModule() {
     checkIntroStatus();
   }, []);
 
+  // TODO: Make the time out 7000
   const checkIntroStatus = async () => {
     try {
       const value = await AsyncStorage.getItem(INTRO_COMPLETED_KEY);
       if (value === "true") {
         setTimeout(() => {
           navigateToAuth();
-        }, 7000);
+        }, 2000);
       } else {
         setTimeout(() => {
           setIsLoading(false);
-        }, 7000);
+        }, 2000);
       }
     } catch (error) {
       console.error("Error checking intro status:", error);
       setTimeout(() => {
         setIsLoading(false);
-      }, 7000);
+      }, 2000);
     }
   };
 
