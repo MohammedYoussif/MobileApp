@@ -1,5 +1,5 @@
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Tabs } from "expo-router";
+import { Image } from "react-native";
 
 export default function TabLayout() {
   return (
@@ -8,8 +8,18 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color }) => (
-            <FontAwesome size={28} name="home" color={color} />
+          tabBarActiveTintColor: "#B38051",
+          tabBarIcon: ({ focused }) => (
+            <Image
+              width={24}
+              height={24}
+              resizeMode="contain"
+              source={
+                focused
+                  ? require("@/assets/images/home-tab-active.png")
+                  : require("@/assets/images/home-tab-inactive.png")
+              }
+            />
           ),
         }}
       />
@@ -17,8 +27,18 @@ export default function TabLayout() {
         name="add"
         options={{
           title: "Add",
-          tabBarIcon: ({ color }) => (
-            <FontAwesome size={28} name="cog" color={color} />
+          tabBarActiveTintColor: "#B38051",
+          tabBarIcon: ({ focused }) => (
+            <Image
+              width={24}
+              height={24}
+              resizeMode="contain"
+              source={
+                focused
+                  ? require("@/assets/images/add-tab-active.png")
+                  : require("@/assets/images/add-tab-inactive.png")
+              }
+            />
           ),
         }}
       />
@@ -26,8 +46,18 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color }) => (
-            <FontAwesome size={28} name="cog" color={color} />
+          tabBarActiveTintColor: "#B38051",
+          tabBarIcon: ({ focused }) => (
+            <Image
+              width={24}
+              height={24}
+              resizeMode="contain"
+              source={
+                focused
+                  ? require("@/assets/images/profile-tab-active.png")
+                  : require("@/assets/images/profile-tab-inactive.png")
+              }
+            />
           ),
         }}
       />

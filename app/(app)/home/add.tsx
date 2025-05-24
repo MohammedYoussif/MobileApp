@@ -6,8 +6,6 @@ import { FlatList, Image, SafeAreaView, Text, View } from "react-native";
 export default function Add() {
   const { userProfile, getCategories, logout } = useAuth();
 
-  console.log("The Cates", getCategories());
-
   return (
     <SafeAreaView
       style={{

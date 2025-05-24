@@ -36,9 +36,6 @@ const ProfileSetupFlow: React.FC = () => {
     currentUser,
   } = useAuth();
 
-  // console.log("The currentUser:", currentUser);
-  console.log("The userProfile:", userProfile);
-
   const [accountType, setAccountType] = useState<AccountType>(
     (userProfile?.accountType as AccountType) || "personal"
   );

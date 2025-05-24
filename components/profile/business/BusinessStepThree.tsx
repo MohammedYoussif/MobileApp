@@ -3,6 +3,7 @@ import { useAuth } from "@/context/auth.context";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,17 +14,29 @@ import {
 import ActionButton from "../ActionButton";
 import ProfileImagePicker from "../ProfileImagePicker";
 
-const CategoryOption = ({ icon, id, name, selected, onSelect }: any) => {
+const CategoryOption = ({
+  icon,
+  imageUri,
+  id,
+  name,
+  selected,
+  onSelect,
+}: any) => {
   return (
     <TouchableOpacity
       style={[styles.categoryOption, selected && styles.selectedCategory]}
       onPress={() => onSelect(id)}
     >
-      <Ionicons
-        name={icon}
-        size={24}
-        color={selected ? "#B38051" : "#999999"}
-      />
+      {icon && !imageUri && (
+        <Ionicons
+          name={icon}
+          size={24}
+          color={selected ? "#B38051" : "#999999"}
+        />
+      )}
+      {imageUri && !icon && (
+        <Image source={{ uri: imageUri }} style={styles.categoryImage} />
+      )}
       <Text
         style={[styles.categoryName, selected && styles.selectedCategoryName]}
       >
@@ -132,42 +145,12 @@ const BusinessStepThree = ({
             <CategoryOption
               key={category.id}
               id={category.id}
-              icon={category.icon}
+              imageUri={category.image_url}
               name={category.name}
-              selected={
-                (userData?.categoryId || formData.category) === category.id
-              }
+              selected={formData.category === category.id}
               onSelect={handleCategorySelect}
             />
           ))}
-
-          {/* Example static categories */}
-          {/* Uncomment and modify as needed */}
-          {/* <CategoryOption
-            icon="business-outline"
-            name="Business"
-            selected={formData.category === "Business"}
-            onSelect={handleCategorySelect}s
-          {/* <CategoryOption
-            icon="restaurant-outline"
-            name="Restaurant"
-            selected={formData.category === "Restaurant"}
-            onSelect={handleCategorySelect}
-          />
-
-          <CategoryOption
-            icon="medkit-outline"
-            name="Medical care"
-            selected={formData.category === "Medical care"}
-            onSelect={handleCategorySelect}
-          />
-
-          <CategoryOption
-            icon="business-outline"
-            name="Hotel"
-            selected={formData.category === "Hotel"}
-            onSelect={handleCategorySelect}
-          /> */}
         </View>
       </View>
 
@@ -261,6 +244,10 @@ const styles = StyleSheet.create({
     borderColor: "#B38051",
     backgroundColor: "#FAF5F0",
   },
+  categoryImage: {
+    width: 45,
+    height: 45,
+  },
   categoryName: {
     marginTop: 8,
     textAlign: "center",
@@ -278,3 +265,5 @@ const styles = StyleSheet.create({
 });
 
 export default BusinessStepThree;
+
+export { CategoryOption };
