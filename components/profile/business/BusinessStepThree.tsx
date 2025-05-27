@@ -1,7 +1,9 @@
 // components/business/BusinessStepThree.js
+import { useAuth } from "@/context/auth.context";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React from "react";
 import {
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,17 +14,29 @@ import {
 import ActionButton from "../ActionButton";
 import ProfileImagePicker from "../ProfileImagePicker";
 
-const CategoryOption = ({ icon, name, selected, onSelect }: any) => {
+const CategoryOption = ({
+  icon,
+  imageUri,
+  id,
+  name,
+  selected,
+  onSelect,
+}: any) => {
   return (
     <TouchableOpacity
       style={[styles.categoryOption, selected && styles.selectedCategory]}
-      onPress={() => onSelect(name)}
+      onPress={() => onSelect(id)}
     >
-      <Ionicons
-        name={icon}
-        size={24}
-        color={selected ? "#B38051" : "#999999"}
-      />
+      {icon && !imageUri && (
+        <Ionicons
+          name={icon}
+          size={24}
+          color={selected ? "#B38051" : "#999999"}
+        />
+      )}
+      {imageUri && !icon && (
+        <Image source={{ uri: imageUri }} style={styles.categoryImage} />
+      )}
       <Text
         style={[styles.categoryName, selected && styles.selectedCategoryName]}
       >
@@ -32,13 +46,23 @@ const CategoryOption = ({ icon, name, selected, onSelect }: any) => {
   );
 };
 
-const BusinessStepThree = ({ userData, onBack, onComplete, onSkip }: any) => {
-  const [formData, setFormData] = useState({
+const BusinessStepThree = ({
+  userData,
+  onBack,
+  onComplete,
+  onSkip,
+  formData,
+  setFormData,
+}: any) => {
+  /* const [formData, setFormData] = useState({
     profilePicture: userData.profilePicture || null,
     coverPicture: userData.coverPicture || null,
     bio: userData.bio || "",
     category: userData.category || "",
-  });
+  }); */
+  const { getCategories } = useAuth();
+
+  console.log("The userData:", userData);
 
   const handleImageSelected = (type: any, uri: any) => {
     setFormData({
@@ -66,8 +90,14 @@ const BusinessStepThree = ({ userData, onBack, onComplete, onSkip }: any) => {
     onComplete(formData);
   };
 
+  // console.log("The formData:", formData);
+  console.log("The formData bio:", formData.bio);
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingHorizontal: 16 }}
+    >
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#000" />
@@ -78,10 +108,11 @@ const BusinessStepThree = ({ userData, onBack, onComplete, onSkip }: any) => {
 
       <View style={styles.profilePicSection}>
         <ProfileImagePicker
-          imageUri={formData.profilePicture}
-          onImageSelected={(uri: any) =>
-            handleImageSelected("profilePicture", uri)
-          }
+          imageUri={userData?.profilePicture || formData?.profilePicture}
+          onImageSelected={(uri: any) => {
+            console.log("Selected image URI:", uri);
+            handleImageSelected("profilePicture", uri);
+          }}
           title="Add Profile Pic"
         />
       </View>
@@ -98,7 +129,7 @@ const BusinessStepThree = ({ userData, onBack, onComplete, onSkip }: any) => {
           multiline
           numberOfLines={4}
           textAlignVertical="top"
-          value={formData.bio}
+          value={userData?.bio || formData.bio}
           onChangeText={handleBioChange}
         />
       </View>
@@ -110,26 +141,16 @@ const BusinessStepThree = ({ userData, onBack, onComplete, onSkip }: any) => {
         </Text>
 
         <View style={styles.categoryOptions}>
-          <CategoryOption
-            icon="restaurant-outline"
-            name="Restaurant"
-            selected={formData.category === "Restaurant"}
-            onSelect={handleCategorySelect}
-          />
-
-          <CategoryOption
-            icon="medkit-outline"
-            name="Medical care"
-            selected={formData.category === "Medical care"}
-            onSelect={handleCategorySelect}
-          />
-
-          <CategoryOption
-            icon="business-outline"
-            name="Hotel"
-            selected={formData.category === "Hotel"}
-            onSelect={handleCategorySelect}
-          />
+          {getCategories().map((category: any) => (
+            <CategoryOption
+              key={category.id}
+              id={category.id}
+              imageUri={category.image_url}
+              name={category.name}
+              selected={formData.category === category.id}
+              onSelect={handleCategorySelect}
+            />
+          ))}
         </View>
       </View>
 
@@ -223,6 +244,10 @@ const styles = StyleSheet.create({
     borderColor: "#B38051",
     backgroundColor: "#FAF5F0",
   },
+  categoryImage: {
+    width: 45,
+    height: 45,
+  },
   categoryName: {
     marginTop: 8,
     textAlign: "center",
@@ -240,3 +265,5 @@ const styles = StyleSheet.create({
 });
 
 export default BusinessStepThree;
+
+export { CategoryOption };
