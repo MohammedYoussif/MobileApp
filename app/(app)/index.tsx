@@ -33,7 +33,6 @@ const ProfileSetupFlow: React.FC = () => {
     profileLoading,
     saveProfile,
     profileComplete,
-    currentUser,
   } = useAuth();
 
   const [accountType, setAccountType] = useState<AccountType>(

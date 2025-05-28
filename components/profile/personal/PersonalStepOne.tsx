@@ -72,6 +72,8 @@ const PersonalStepOne: React.FC<PersonalStepOneProps> = ({
     <ScrollView
       style={styles.container}
       contentContainerStyle={{ paddingHorizontal: 16 }}
+      showsVerticalScrollIndicator={false}
+      showsHorizontalScrollIndicator={false}
     >
       <Text style={styles.title}>Fill Your Profile</Text>
 

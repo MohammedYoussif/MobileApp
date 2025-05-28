@@ -9,6 +9,7 @@ interface ProfileImagePickerProps {
   onImageSelected: (uri: string) => void;
   title?: string;
   size?: number;
+  cover?: boolean;
 }
 
 const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
@@ -16,6 +17,7 @@ const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
   onImageSelected,
   title = "Add Profile Pic",
   size = 120,
+  cover = false,
 }) => {
   const [image, setImage] = useState<string | null | undefined>(imageUri);
 
@@ -31,7 +33,7 @@ const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [1, 1],
+      aspect: cover ? [16, 9] : [1, 1], // Different aspect ratio for cover
       quality: 0.8,
     });
 
@@ -42,6 +44,16 @@ const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
       onImageSelected(result.assets[0].uri);
     }
   };
+
+  if (cover) {
+    return (
+      <View style={styles.coverContainer}>
+        <TouchableOpacity style={styles.coverImageContainer} onPress={pickImage}>
+            <Image source={image ? { uri: image } : require('@/assets/images/cover-default.png')} style={styles.coverImage} />
+        </TouchableOpacity>
+      </View>
+    );
+  } 
 
   return (
     <View style={styles.container}>
@@ -70,15 +82,18 @@ const styles = StyleSheet.create({
   container: {
     alignItems: "center",
     marginVertical: 15,
+    marginTop: 100,
   },
   imageContainer: {
     borderRadius: 100,
-    overflow: "hidden",
     position: "relative",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
   },
   image: {
     width: "100%",
     height: "100%",
+    borderRadius: 100,
   },
   placeholder: {
     width: "100%",
@@ -89,8 +104,8 @@ const styles = StyleSheet.create({
   },
   addButton: {
     position: "absolute",
-    bottom: 0,
-    right: 0,
+    bottom: 5,
+    right: 5,
     backgroundColor: "#B38051",
     width: 28,
     height: 28,
@@ -99,11 +114,61 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 2,
     borderColor: "#FFFFFF",
+    zIndex: 100,
   },
   title: {
     marginTop: 8,
     fontSize: 16,
     color: "#333333",
+  },
+  // Cover-specific styles
+  coverContainer: {
+    width: "100%",
+    position: "absolute",
+    top: -100,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: -1,
+  },
+  coverImageContainer: {
+    width: "100%",
+    height: 200,
+    backgroundColor: "#F8F8F8",
+    borderRadius: 12,
+    overflow: "hidden",
+    position: "relative",
+  },
+  coverImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  coverPlaceholder: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#F2F2F2",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  coverPlaceholderText: {
+    marginTop: 8,
+    fontSize: 16,
+    color: "#888888",
+    fontWeight: "500",
+  },
+  coverAddButton: {
+    position: "absolute",
+    top: 15,
+    right: 15,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
   },
 });
 

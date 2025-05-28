@@ -1,23 +1,29 @@
-// components/personal/PersonalStepTwo.js
+// components/business/BusinessStepThree.js
+import { useAuth } from "@/context/auth.context";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import { LinearGradient } from "expo-linear-gradient";
+import React from "react";
 import {
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import ActionButton from "../ActionButton";
 import ProfileImagePicker from "../ProfileImagePicker";
 
-const PersonalStepTwo = ({ userData, onBack, onComplete, onSkip }: any) => {
-  const [formData, setFormData] = useState({
-    profilePicture: userData.profilePicture || null,
-    coverPicture: userData.coverPicture || null,
-    bio: userData.bio || "",
-  });
+
+const PersonalStepTwo = ({
+  userData,
+  onBack,
+  onComplete,
+  onSkip,
+  formData,
+  setFormData,
+}: any) => {
+  const { getCategories } = useAuth();
 
   const handleImageSelected = (type: any, uri: any) => {
     setFormData({
@@ -34,36 +40,45 @@ const PersonalStepTwo = ({ userData, onBack, onComplete, onSkip }: any) => {
   };
 
   const handleSubmit = () => {
-    // Submit the profile data
     onComplete(formData);
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
+    <ScrollView
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+      showsHorizontalScrollIndicator={false}
+    >
+      <LinearGradient
+        colors={['#fff', 'transparent']}
+        style={styles.header}
+      >
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.title}>Fill Your Profile</Text>
         <View style={styles.placeholder} />
-      </View>
+      </LinearGradient>
 
-      <View style={styles.imagePickersContainer}>
-        <ProfileImagePicker
-          imageUri={formData.profilePicture}
-          onImageSelected={(uri: any) =>
-            handleImageSelected("profilePicture", uri)
-          }
-          title="Add Profile Pic"
-        />
+      <View style={styles.profileSection}>
+        <View style={styles.coverPhotoContainer}>
+          <ProfileImagePicker
+            imageUri={userData?.coverPicture || formData?.coverPicture}
+            onImageSelected={(uri: any) => {
+              handleImageSelected("coverPicture", uri);
+            }}
+            cover
+          />
+        </View>
 
-        <ProfileImagePicker
-          imageUri={formData.coverPicture}
-          onImageSelected={(uri: any) =>
-            handleImageSelected("coverPicture", uri)
-          }
-          title="Add Cover Photo"
-        />
+          <ProfileImagePicker
+            imageUri={userData?.profilePicture || formData?.profilePicture}
+            onImageSelected={(uri: any) => {
+              handleImageSelected("profilePicture", uri);
+            }}
+            title="Add Profile Pic"
+            size={120}
+          />
       </View>
 
       <View style={styles.bioContainer}>
@@ -73,12 +88,12 @@ const PersonalStepTwo = ({ userData, onBack, onComplete, onSkip }: any) => {
         </View>
         <TextInput
           style={styles.bioInput}
-          placeholder="Write a short bio about yourself..."
+          placeholder="Write a short bio about your business..."
           placeholderTextColor="#999"
           multiline
           numberOfLines={4}
           textAlignVertical="top"
-          value={formData.bio}
+          value={userData?.bio || formData.bio}
           onChangeText={handleBioChange}
         />
       </View>
@@ -101,6 +116,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: 20,
+    zIndex: 100,
+    paddingHorizontal: 16
   },
   backButton: {
     padding: 10,
@@ -111,15 +128,18 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   placeholder: {
-    width: 44, // Same as backButton width to ensure title stays centered
+    width: 44,
   },
-  imagePickersContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginVertical: 20,
+  profileSection: {
+    position: "relative",
+  },
+  coverPhotoContainer: {
+    width: "100%",
+    marginBottom: -60, // Negative margin to allow profile pic overlap
   },
   bioContainer: {
     marginVertical: 20,
+    paddingHorizontal: 16
   },
   bioHeader: {
     flexDirection: "row",
@@ -144,6 +164,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     marginTop: 20,
     marginBottom: 40,
+    paddingHorizontal: 16
   },
 });
 

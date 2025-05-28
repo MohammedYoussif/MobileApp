@@ -1,5 +1,6 @@
 // components/business/BusinessStepTwo.js
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
   ScrollView,
@@ -41,11 +42,6 @@ const BusinessStepTwo = ({
   socialLinks,
   setSocialLinks,
 }: any) => {
-  /* const [socialLinks, setSocialLinks] = useState({
-    instagram: userData.socialLinks?.instagram || "",
-    twitter: userData.socialLinks?.twitter || "",
-    whatsapp: userData.socialLinks?.whatsapp || "",
-  }); */
 
   const handleSocialLinkChange = (platform: any, value: any) => {
     setSocialLinks({
@@ -55,7 +51,6 @@ const BusinessStepTwo = ({
   };
 
   const handleSubmit = () => {
-    // Validate and continue to next step
     onContinue({ socialLinks });
   };
 
@@ -68,14 +63,19 @@ const BusinessStepTwo = ({
     <ScrollView
       style={styles.container}
       contentContainerStyle={{ paddingHorizontal: 16 }}
+      showsVerticalScrollIndicator={false}
+      showsHorizontalScrollIndicator={false}
     >
-      <View style={styles.header}>
+      <LinearGradient
+        colors={['#fff', 'transparent']}
+        style={styles.header}
+      >
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.title}>Fill Your Profile</Text>
         <View style={styles.placeholder} />
-      </View>
+      </LinearGradient>
 
       <View style={styles.socialMediaList}>
         <SocialMediaLink

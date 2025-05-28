@@ -1,6 +1,7 @@
 // components/business/BusinessStepThree.js
 import { useAuth } from "@/context/auth.context";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
   Image,
@@ -54,15 +55,7 @@ const BusinessStepThree = ({
   formData,
   setFormData,
 }: any) => {
-  /* const [formData, setFormData] = useState({
-    profilePicture: userData.profilePicture || null,
-    coverPicture: userData.coverPicture || null,
-    bio: userData.bio || "",
-    category: userData.category || "",
-  }); */
   const { getCategories } = useAuth();
-
-  console.log("The userData:", userData);
 
   const handleImageSelected = (type: any, uri: any) => {
     setFormData({
@@ -86,35 +79,45 @@ const BusinessStepThree = ({
   };
 
   const handleSubmit = () => {
-    // Submit the profile data
     onComplete(formData);
   };
-
-  // console.log("The formData:", formData);
-  console.log("The formData bio:", formData.bio);
 
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={{ paddingHorizontal: 16 }}
+      showsVerticalScrollIndicator={false}
+      showsHorizontalScrollIndicator={false}
     >
-      <View style={styles.header}>
+      <LinearGradient
+        colors={['#fff', 'transparent']}
+        style={styles.header}
+      >
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.title}>Fill Your Profile</Text>
         <View style={styles.placeholder} />
-      </View>
+      </LinearGradient>
 
-      <View style={styles.profilePicSection}>
-        <ProfileImagePicker
-          imageUri={userData?.profilePicture || formData?.profilePicture}
-          onImageSelected={(uri: any) => {
-            console.log("Selected image URI:", uri);
-            handleImageSelected("profilePicture", uri);
-          }}
-          title="Add Profile Pic"
-        />
+      <View style={styles.profileSection}>
+        <View style={styles.coverPhotoContainer}>
+          <ProfileImagePicker
+            imageUri={userData?.coverPicture || formData?.coverPicture}
+            onImageSelected={(uri: any) => {
+              handleImageSelected("coverPicture", uri);
+            }}
+            cover
+          />
+        </View>
+
+          <ProfileImagePicker
+            imageUri={userData?.profilePicture || formData?.profilePicture}
+            onImageSelected={(uri: any) => {
+              handleImageSelected("profilePicture", uri);
+            }}
+            title="Add Profile Pic"
+            size={120}
+          />
       </View>
 
       <View style={styles.bioContainer}>
@@ -172,6 +175,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: 20,
+    zIndex: 100,
+    paddingHorizontal: 16
   },
   backButton: {
     padding: 10,
@@ -184,12 +189,16 @@ const styles = StyleSheet.create({
   placeholder: {
     width: 44,
   },
-  profilePicSection: {
-    alignItems: "center",
-    marginVertical: 10,
+  profileSection: {
+    position: "relative",
+  },
+  coverPhotoContainer: {
+    width: "100%",
+    marginBottom: -60, // Negative margin to allow profile pic overlap
   },
   bioContainer: {
     marginVertical: 20,
+    paddingHorizontal: 16
   },
   bioHeader: {
     flexDirection: "row",
@@ -213,6 +222,7 @@ const styles = StyleSheet.create({
   },
   categorySection: {
     marginVertical: 20,
+    paddingHorizontal: 16
   },
   categoryTitle: {
     fontSize: 18,
@@ -261,6 +271,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     marginTop: 20,
     marginBottom: 40,
+    paddingHorizontal: 16
   },
 });
 

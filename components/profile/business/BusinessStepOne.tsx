@@ -1,7 +1,9 @@
 // components/business/BusinessStepOne.js
 import { AccountType, UserProfile } from "@/types";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import AccountTypeSelector from "../AccountTypeSelector";
 import ActionButton from "../ActionButton";
 import FormInput from "../FormInput";
@@ -49,8 +51,19 @@ const BusinessStepOne: React.FC<BusinessStepOneProps> = ({
     <ScrollView
       style={styles.container}
       contentContainerStyle={{ paddingHorizontal: 16 }}
+      showsVerticalScrollIndicator={false}
+      showsHorizontalScrollIndicator={false}
     >
-      <Text style={styles.title}>Fill Your Profile</Text>
+      <LinearGradient
+        colors={['#fff', 'transparent']}
+        style={styles.header}
+      >
+        <TouchableOpacity style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#000" />
+        </TouchableOpacity>
+        <Text style={styles.title}>Fill Your Profile</Text>
+        <View style={styles.placeholder} />
+      </LinearGradient>
 
       <AccountTypeSelector
         selectedType={accountType}
@@ -113,11 +126,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 20,
+  },
+  backButton: {
+    padding: 10,
+    opacity: 0
+  },
   title: {
     fontSize: 24,
     fontWeight: "600",
     textAlign: "center",
-    marginVertical: 20,
+  },
+  placeholder: {
+    width: 44,
   },
   badgeContainer: {
     alignItems: "flex-end",
