@@ -10,17 +10,18 @@ import {
   Dimensions,
   FlatList,
   Image,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 export default function Home() {
+  const { bottom } = useSafeAreaInsets();
   const { navigate } = useRouter();
   const { userProfile, getCategories, logout } = useAuth();
   const [isVisible, setIsVisible] = useState(false);
@@ -33,7 +34,7 @@ export default function Home() {
   ];
 
   return (
-    <SafeAreaView style={styles.safeAreaContainer}>
+    <View style={[styles.safeAreaContainer, { paddingBottom: bottom }]}>
       <View style={styles.headerContainer}>
         <View style={styles.filterIconContainer}>
           <TouchableOpacity onPress={() => setIsVisible(true)}>
@@ -164,7 +165,7 @@ export default function Home() {
           }}
         </BottomSheet>
       }
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -187,6 +188,7 @@ const styles = StyleSheet.create({
   filterIconContainer: {
     width: 50,
     height: 50,
+    backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 8,
@@ -225,7 +227,7 @@ const styles = StyleSheet.create({
     gap: 16,
     borderRadius: 8,
     paddingHorizontal: 20,
-    backgroundColor: "#B38051A3",
+    backgroundColor: "#B38051",
   },
   searchTextContainer: {
     paddingEnd: 96,
