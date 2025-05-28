@@ -11,6 +11,7 @@ import {
   statusCodes,
 } from "@react-native-google-signin/google-signin";
 import * as AppleAuthentication from "expo-apple-authentication";
+import * as FileSystem from 'expo-file-system';
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -479,6 +480,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const getImageTypeFromUri = (fileUri: string) => {
+    const extension = fileUri.split('.').pop()?.toLowerCase();
+    
+    // Map common extensions to types
+    const extensionMap = {
+      'jpg': 'jpeg',
+      'jpeg': 'jpeg',
+      'png': 'png',
+      'gif': 'gif',
+      'webp': 'webp',
+      'bmp': 'bmp',
+      'svg': 'svg'
+    };
+    
+    return extensionMap[extension as keyof typeof extensionMap] || 'jpeg';
+  };
+
   // Helper function to upload images to Supabase Storage
   const uploadImage = async (
     fileUri: string,
@@ -492,30 +510,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error("No file URI provided");
       }
 
-      // Fetch the file with proper error handling
-      const response = await fetch(fileUri);
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch image: ${response.status} ${response.statusText}`
-        );
-      }
-
-      // Get the blob with size verification
-      const blob = await response.blob();
-
-      console.log("blob:", blob);
-
-      if (blob.size === 0) {
-        throw new Error("Retrieved blob is empty");
-      }
-
       // Get the correct content type
-      const contentType = blob.type || "image/jpeg";
+      const contentType = `image/${getImageTypeFromUri(fileUri)}`;
+
+      const base64 = await FileSystem.readAsStringAsync(fileUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      const arrayBuffer = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
 
       // Upload to Supabase Storage with proper error handling
       const { data, error } = await supabase.storage
         .from("user-uploads")
-        .upload(path, blob, {
+        .upload(path, arrayBuffer, {
           contentType: contentType,
           upsert: true,
         });
